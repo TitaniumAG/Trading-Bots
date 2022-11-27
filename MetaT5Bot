@@ -65,7 +65,7 @@ int OnInit()
 
  
   awaitEntry = 0;
-  waitTime = 2000;
+  waitTime = 5000;
   entryThreshold = 30;
   tradeLevel = 0;
   waitTradeTime = 0;
@@ -190,11 +190,12 @@ void OnTick()
   
  
   
-// conditions for oversold
+   // conditions for oversold
   
   if (awaitEntry > waitTime)
   {
-  if(!inTrade && myTenkanSenValue < (mySpanAValue - entryThreshold) && myTenkanSenValue < (mySpanBValue - entryThreshold))
+  if(!inTrade && myTenkanSenValue < (mySpanAValue - entryThreshold) 
+  && myTenkanSenValue < (mySpanBValue - entryThreshold && numOfTradesOpen < 4))
   {
   
   
@@ -215,7 +216,8 @@ void OnTick()
   
   if (awaitEntry > waitTime)
   {
-  if(!inTrade && myTenkanSenValue > (mySpanAValue + entryThreshold) && myTenkanSenValue > (mySpanBValue + entryThreshold))
+  if(!inTrade && myTenkanSenValue > (mySpanAValue + entryThreshold) 
+  && myTenkanSenValue > (mySpanBValue + entryThreshold && numOfTradesOpen < 4))
   {
   
   trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
@@ -259,12 +261,16 @@ void OnTick()
   }
   
   //if(waitTradeTime > 10000)
-  if((PL) > 1)
+  if((PL) > 5)
   {    
   trade.PositionClose(Symbol());
   
   inTrade2 = false;
+  if(numOfTradesOpen > -1)
+  {
   numOfTradesOpen = numOfTradesOpen - 1;
+  }
+  
   }
   
   if(checkCycle > 1000 && tradeStarted)
@@ -276,9 +282,9 @@ void OnTick()
   
   if (priceRange < -3)
   {
-  if(PL < -10)
+  if(PL < -30)
   {
-  trade.Sell(0.5,NULL,Ask,(0),(0),NULL);
+  //trade.Sell(0.5,NULL,Ask,(0),(0),NULL);
   }
   }
   
@@ -286,9 +292,9 @@ void OnTick()
   
   if (priceRange > 3)
   {
-  if(PL < -10)
+  if(PL < -30)
   {
-  trade.Buy(0.5,NULL,Ask,(0),(0),NULL);
+  //trade.Buy(0.5,NULL,Ask,(0),(0),NULL);
   }  
   }
   checkCycle = 0;
@@ -298,7 +304,7 @@ void OnTick()
   
  //print values to screen  
  Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", awaitEntry, "\n\n", "Trade time: ", 
- waitTradeTime, "\n\n", "Positions open: ", numOfTradesOpen, "\n\n", "Price Range: ", priceRange );
+ waitTradeTime, "\n\n", "Positions open: ", numOfTradesOpen);
   
   
  }
