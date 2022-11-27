@@ -305,9 +305,8 @@ void OnTick()
  waitTradeTime, "\n\n", "Positions open: ", numOfTradesOpen, "\n\n", "Price Range: ", priceRange );
   
   
-  
+ }}
   
   
   
  
-  }
