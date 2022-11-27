@@ -17,6 +17,7 @@ int numOfTradesOpen;
 bool inTrade;
 bool inTrade2;
 int checkCycle;
+bool counterTrade;
 
 // Create an Array
 MqlRates PriceInfo[];
@@ -65,8 +66,8 @@ int OnInit()
 
  
   awaitEntry = 0;
-  waitTime = 100;
-  entryThreshold = 30;
+  waitTime = 5000;
+  entryThreshold = 20;
   tradeLevel = 0;
   waitTradeTime = 0;
   numOfTradesOpen = 0;
@@ -74,6 +75,7 @@ int OnInit()
   inTrade2 = false;  
   priceRange = 0;
   checkCycle = 0;
+  counterTrade = false;
   
   return(INIT_SUCCEEDED);
   
@@ -204,6 +206,7 @@ void OnTick()
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
   awaitEntry = 0;
+  Action = "buy";
   }  
   }    
   
@@ -224,6 +227,7 @@ void OnTick()
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
   awaitEntry = 0;
+  Action = "sell";
   }  
   }    
   
@@ -259,51 +263,56 @@ void OnTick()
   inTrade = false;
   }
   
-  //if(waitTradeTime > 10000)
-  if(PL > 25 || PL < -25)
-  {    
+  //P&L events
+  if(PL > 5)
+  {// pl start    
   trade.PositionClose(Symbol());
-  
+  counterTrade = false;
   inTrade2 = false;
   if(numOfTradesOpen > -1)
   {
   numOfTradesOpen = numOfTradesOpen - 1;
-  }
-  
-  }
-  
-  if(checkCycle > 1000 && tradeStarted)
-  {
-  
-  // Copy price data into the array
-  int Data = CopyRates(Symbol(),Period(),0,Bars(Symbol(),Period()),PriceInfo);
-  priceRange = PriceInfo[0].close - PriceInfo[1].open;
-  
-  if (priceRange < -3)
-  {
-  if(PL < -30)
-  {
-  //trade.Sell(0.5,NULL,Ask,(0),(0),NULL);
-  }
-  }
-  
-  
-  
-  if (priceRange > 3)
-  {
-  if(PL < -30)
-  {
-  //trade.Buy(0.5,NULL,Ask,(0),(0),NULL);
   }  
+  }// pl end
+  
+  
+  
+  if(PL < -10)
+  {// pl start   
+   
+  if(Action == "buy")  
+  {
+  if(!counterTrade)
+  {
+  trade.Sell(0.05,NULL,Ask,(0),(0),NULL);
+  counterTrade = true;
   }
-  checkCycle = 0;
+  
+    
   }  
   
+  if(Action == "sell")
+  {
+  if(!counterTrade)
+  {
+  trade.Buy(0.05,NULL,Ask,(0),(0),NULL);
+  counterTrade = true;
+  }
+  
+  }  
+  
+  
+  }// pl end
+  
+ 
+  
+  
+
   
   
  //print values to screen  
  Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", awaitEntry, "\n\n", "Trade time: ", 
- waitTradeTime, "\n\n", "Positions open: ", numOfTradesOpen);
+ waitTradeTime, "\n\n", "Positions open: ", numOfTradesOpen, "\n\n", "Sentiment: ", Action, "\n\n", "P&L: ", PL);
   
   
  }
