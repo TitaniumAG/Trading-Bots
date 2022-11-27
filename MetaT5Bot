@@ -16,6 +16,7 @@ int waitTradeTime;
 int numOfTradesOpen;
 bool inTrade;
 bool inTrade2;
+int checkCycle;
 
 // Create an Array
 MqlRates PriceInfo[];
@@ -63,7 +64,7 @@ int OnInit()
   tradeStarted = false;
 
  
-  int awaitEntry = 0;
+  awaitEntry = 0;
   waitTime = 2000;
   entryThreshold = 30;
   tradeLevel = 0;
@@ -72,6 +73,7 @@ int OnInit()
   inTrade = false;
   inTrade2 = false;  
   priceRange = 0;
+  checkCycle = 0;
   
   return(INIT_SUCCEEDED);
   
@@ -229,7 +231,7 @@ void OnTick()
   
   
   
-  // trade based events  
+  // trade tick based events  
   
   if(tradeStarted)
   {
@@ -245,6 +247,8 @@ void OnTick()
   {
   waitTradeTime = 0;
   }
+  
+  checkCycle = checkCycle + 1;
   
   
   if(awaitEntry > (waitTime * 2))
@@ -263,37 +267,34 @@ void OnTick()
   numOfTradesOpen = numOfTradesOpen - 1;
   }
   
-  if(waitTradeTime > 20)
+  if(checkCycle > 1000 && tradeStarted)
   {
   
   // Copy price data into the array
   int Data = CopyRates(Symbol(),Period(),0,Bars(Symbol(),Period()),PriceInfo);
   priceRange = PriceInfo[0].close - PriceInfo[1].open;
   
-  if (priceRange < -5)
+  if (priceRange < -3)
   {
-  inTrade = false;
-  inTrade2 = false;
-  tradeStarted = false;
-  numOfTradesOpen = 0;
-  awaitEntry = 0;
-  //trade.PositionClose(Symbol());
+  if(PL < -10)
+  {
   trade.Sell(0.5,NULL,Ask,(0),(0),NULL);
-  //waitTradeTime = 0;
   }
   
-  if (priceRange > 5)
+  
+  
+  if (priceRange > 3)
   {
-  inTrade = false;
-  inTrade2 = false;
-  tradeStarted = false;
-  numOfTradesOpen = 0;
-  awaitEntry = 0;
-  //trade.PositionClose(Symbol());
+  if(PL < -10)
+  {
   trade.Buy(0.5,NULL,Ask,(0),(0),NULL);
-  //waitTradeTime = 0;
-  }  
-  waitTradeTime = 0;  
+  }
+  
+  
+  
+  
+  }
+  checkCycle = 0;
   }
   
   
