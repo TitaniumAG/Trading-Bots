@@ -1,0 +1,312 @@
+// creatre an instance of ctrade
+#include <Trade\trade.mqh>
+CTrade trade;
+
+bool userAlerted;
+string Action;
+int tickTradeDuration;
+bool tradeStarted;
+
+ 
+int awaitEntry;
+int waitTime;
+int entryThreshold;
+int tradeLevel;
+int waitTradeTime;
+int numOfTradesOpen;
+bool inTrade;
+bool inTrade2;
+
+// Create an Array
+MqlRates PriceInfo[];
+
+double priceRange;
+
+
+/*
+void OpenBuyOrder()
+   {
+   
+   double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
+   double Equity=AccountInfoDouble(ACCOUNT_EQUITY);
+   double Balance=AccountInfoDouble(ACCOUNT_BALANCE);
+   
+   MqlTradeRequest myrequest;
+   MqlTradeResult myresult;
+   ZeroMemory(myrequest);
+   
+   
+   myrequest.action=TRADE_ACTION_DEAL;
+   myrequest.type=ORDER_TYPE_BUY;
+   myrequest.symbol=_Symbol;
+   myrequest.volume=0.03;
+   myrequest.type_filling=ORDER_FILLING_FOK;
+   myrequest.price=SymbolInfoDouble(_Symbol,SYMBOL_ASK);
+   myrequest.tp=309;
+   myrequest.sl=0;
+   myrequest.deviation=50;
+   OrderSend(myrequest,myresult);
+      
+   
+   }
+*/
+
+
+
+
+
+int OnInit()
+  {
+  userAlerted = false;
+  Action = "";
+  tickTradeDuration = 0;
+  tradeStarted = false;
+
+ 
+  int awaitEntry = 0;
+  waitTime = 2000;
+  entryThreshold = 30;
+  tradeLevel = 0;
+  waitTradeTime = 0;
+  numOfTradesOpen = 0;
+  inTrade = false;
+  inTrade2 = false;  
+  priceRange = 0;
+  
+  return(INIT_SUCCEEDED);
+  
+  }
+
+
+
+
+void OnTick()
+  {
+  
+  
+  double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
+  double Equity=AccountInfoDouble(ACCOUNT_EQUITY);
+  double Balance=AccountInfoDouble(ACCOUNT_BALANCE);
+  double PL = (Equity - Balance);  
+  
+  
+  // we calculate the ask price 
+  //double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK,_Digits);
+  
+  // we calculate the bid price
+  //double Bid=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_BID,_Digits);
+  
+  
+  // create array for the price data
+  double myRSIArray[];
+  double myCCIArray[];
+  double mySpanAArray[];
+  double mySpanBArray[];
+  double myTenkanSenArray[];
+  
+  
+  // Sort it from current candle to oldest candle 
+  ArraySetAsSeries(PriceInfo, true);
+   
+  
+  
+  int myRSIDefinition=iRSI(_Symbol, _Period,14,PRICE_CLOSE);
+  int myCCIDefinition=iCCI(_Symbol, _Period,14,PRICE_CLOSE);
+  int myIchimokuDefinition=iIchimoku(_Symbol, _Period,9,26,52);
+  
+  
+  
+  // sort the price data from the current candle downwards 
+  ArraySetAsSeries(myRSIArray,true);
+  ArraySetAsSeries(myCCIArray,true);
+  ArraySetAsSeries(mySpanAArray,true);
+  ArraySetAsSeries(mySpanBArray,true);
+  ArraySetAsSeries(myTenkanSenArray,true);
+  
+  
+  
+  // defined ea, from current candle, for 3 candles, save in array
+  CopyBuffer(myRSIDefinition,0,0,3,myRSIArray);
+  CopyBuffer(myCCIDefinition,0,0,3,myCCIArray);
+  CopyBuffer(myIchimokuDefinition,2,0,3,mySpanAArray);
+  CopyBuffer(myIchimokuDefinition,3,0,3,mySpanBArray);
+  CopyBuffer(myIchimokuDefinition,0,0,3,myTenkanSenArray);
+  
+  
+  // calculate the current rsi & cci values
+  double myRSIValue=NormalizeDouble(myRSIArray[0],2);
+  double myCCIValue=NormalizeDouble(myCCIArray[0],2);
+  double mySpanAValue=mySpanAArray[0];
+  double mySpanBValue=mySpanBArray[0];
+  double myTenkanSenValue=myTenkanSenArray[0];
+ 
+
+  
+  
+  
+  // logic for alerting the user of a potential trade setup
+  
+ 
+  
+  /*
+  if (!userAlerted && myRSIValue > 69 && myCCIValue > 99 || !userAlerted && myRSIValue < 31 && myCCIValue < -99)
+  {
+  PlaySound("alert.wav");
+  userAlerted = true;
+  }
+  */
+  
+
+  
+  
+  // oversold conditions where sentiment is to buy up
+  if (myRSIValue < 31 && myCCIValue < -99)
+  {
+  //PlaySound("alert.wav");
+  
+  tradeStarted = true;
+  
+  
+   
+  }   
+  
+  
+  
+  // overbought conditions where sentiment is to sell down
+  if (myRSIValue > 69 && myCCIValue > 99)
+  {
+  //PlaySound("alert.wav");
+  
+  tradeStarted = true; 
+  
+ 
+   
+  } 
+  
+  
+  
+  
+ 
+  
+// conditions for oversold
+  
+  if (awaitEntry > waitTime)
+  {
+  if(!inTrade && myTenkanSenValue < (mySpanAValue - entryThreshold) && myTenkanSenValue < (mySpanBValue - entryThreshold))
+  {
+  
+  
+  trade.Buy(0.01,NULL,Ask,(0),(0),NULL);
+  
+ 
+  //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
+  inTrade = true;
+  inTrade2 = true;
+  numOfTradesOpen = numOfTradesOpen + 1;
+  }  
+  }    
+  
+ 
+  
+  
+   // conditions for overbought
+  
+  if (awaitEntry > waitTime)
+  {
+  if(!inTrade && myTenkanSenValue > (mySpanAValue + entryThreshold) && myTenkanSenValue > (mySpanBValue + entryThreshold))
+  {
+  
+  trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
+  //trade.Buy(0.01,NULL,Ask,(0),(Ask+1000 * _Point),NULL);
+  inTrade = true;
+  inTrade2 = true;
+  numOfTradesOpen = numOfTradesOpen + 1;
+  }  
+  }    
+  
+  
+  
+  
+  
+  
+  // trade based events  
+  
+  if(tradeStarted)
+  {
+   awaitEntry = awaitEntry + 1;
+  }
+  
+  if(numOfTradesOpen > 0)
+  {
+  waitTradeTime = waitTradeTime + 1;
+  }
+  
+  if(numOfTradesOpen == 0)
+  {
+  waitTradeTime = 0;
+  }
+  
+  
+  if(awaitEntry > (waitTime * 2))
+  {
+  awaitEntry = 0;
+  tradeStarted = false;
+  inTrade = false;
+  }
+  
+  //if(waitTradeTime > 10000)
+  if((PL) > 1)
+  {    
+  trade.PositionClose(Symbol());
+  
+  inTrade2 = false;
+  numOfTradesOpen = numOfTradesOpen - 1;
+  }
+  
+  if(waitTradeTime > 20)
+  {
+  
+  // Copy price data into the array
+  int Data = CopyRates(Symbol(),Period(),0,Bars(Symbol(),Period()),PriceInfo);
+  priceRange = PriceInfo[0].close - PriceInfo[1].open;
+  
+  if (priceRange < -5)
+  {
+  inTrade = false;
+  inTrade2 = false;
+  tradeStarted = false;
+  numOfTradesOpen = 0;
+  awaitEntry = 0;
+  //trade.PositionClose(Symbol());
+  trade.Sell(0.5,NULL,Ask,(0),(0),NULL);
+  //waitTradeTime = 0;
+  }
+  
+  if (priceRange > 5)
+  {
+  inTrade = false;
+  inTrade2 = false;
+  tradeStarted = false;
+  numOfTradesOpen = 0;
+  awaitEntry = 0;
+  //trade.PositionClose(Symbol());
+  trade.Buy(0.5,NULL,Ask,(0),(0),NULL);
+  //waitTradeTime = 0;
+  }  
+  waitTradeTime = 0;  
+  }
+  
+  
+  
+  
+ //print values to screen  
+ Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", awaitEntry, "\n\n", "Trade time: ", 
+ waitTradeTime, "\n\n", "Positions open: ", numOfTradesOpen, "\n\n", "Price Range: ", priceRange );
+  
+  
+  
+  
+  
+  
+ 
+  }
