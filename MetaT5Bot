@@ -203,6 +203,7 @@ void OnTick()
   inTrade = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
+  awaitEntry = 0;
   }  
   }    
   
@@ -222,6 +223,7 @@ void OnTick()
   inTrade = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
+  awaitEntry = 0;
   }  
   }    
   
