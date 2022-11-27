@@ -65,7 +65,7 @@ int OnInit()
 
  
   awaitEntry = 0;
-  waitTime = 5000;
+  waitTime = 100;
   entryThreshold = 30;
   tradeLevel = 0;
   waitTradeTime = 0;
@@ -195,13 +195,10 @@ void OnTick()
   if (awaitEntry > waitTime)
   {
   if(!inTrade && myTenkanSenValue < (mySpanAValue - entryThreshold) 
-  && myTenkanSenValue < (mySpanBValue - entryThreshold && numOfTradesOpen < 4))
-  {
+  && myTenkanSenValue < (mySpanBValue - entryThreshold ) && numOfTradesOpen < 4)
+  {  
   
-  
-  trade.Buy(0.01,NULL,Ask,(0),(0),NULL);
-  
- 
+  trade.Buy(0.01,NULL,Ask,(0),(0),NULL); 
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
@@ -217,7 +214,7 @@ void OnTick()
   if (awaitEntry > waitTime)
   {
   if(!inTrade && myTenkanSenValue > (mySpanAValue + entryThreshold) 
-  && myTenkanSenValue > (mySpanBValue + entryThreshold && numOfTradesOpen < 4))
+  && myTenkanSenValue > (mySpanBValue + entryThreshold) && numOfTradesOpen < 4)
   {
   
   trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
@@ -261,7 +258,7 @@ void OnTick()
   }
   
   //if(waitTradeTime > 10000)
-  if((PL) > 5)
+  if(PL > 25 || PL < -25)
   {    
   trade.PositionClose(Symbol());
   
