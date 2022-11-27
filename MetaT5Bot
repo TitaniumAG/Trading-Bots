@@ -280,6 +280,7 @@ void OnTick()
   {
   trade.Sell(0.5,NULL,Ask,(0),(0),NULL);
   }
+  }
   
   
   
@@ -288,15 +289,10 @@ void OnTick()
   if(PL < -10)
   {
   trade.Buy(0.5,NULL,Ask,(0),(0),NULL);
-  }
-  
-  
-  
-  
+  }  
   }
   checkCycle = 0;
-  }
-  
+  }  
   
   
   
@@ -305,7 +301,7 @@ void OnTick()
  waitTradeTime, "\n\n", "Positions open: ", numOfTradesOpen, "\n\n", "Price Range: ", priceRange );
   
   
- }}
+ }
   
   
   
