@@ -7,7 +7,7 @@ string Action;
 int tickTradeDuration;
 bool tradeStarted;
 
- 
+double lotSize;
 int awaitEntry;
 int waitTime;
 int entryThreshold;
@@ -20,10 +20,14 @@ int checkCycle;
 bool counterTrade;
 double spanRange;
 double maxAllowedDist;
+double lastBalance;
 // Create an Array
 MqlRates PriceInfo[];
 
 double priceRange;
+
+double maxRiskAmt;
+
 
 
 /*
@@ -78,8 +82,10 @@ int OnInit()
   checkCycle = 0;
   counterTrade = false;
   spanRange = 0;
-  maxAllowedDist = 30;
-  
+  maxAllowedDist = 15;
+  lotSize = 0.01;
+  lastBalance = 0;
+  maxRiskAmt = 300;
   
   return(INIT_SUCCEEDED);
   
@@ -171,18 +177,29 @@ void OnTick()
   if (myRSIValue < 31 && myCCIValue < -99)
   {
   //PlaySound("alert.wav");
-  
+  if(spanRange < -maxAllowedDist)
+  {
   tradeStarted = true;
+  
   
   // conditions for oversold
   
   if (awaitEntry < waitTime)
   {
-  if(!inTrade && spanRange < -maxAllowedDist && numOfTradesOpen < 4)
+  if(!inTrade && numOfTradesOpen < 3)
   {  
   if(spanRange < -3 || spanRange > 3)
   {
-  trade.Buy(0.01,NULL,Ask,(0),(0),NULL); 
+  maxRiskAmt = 300;
+  }
+  if(numOfTradesOpen < 2)
+  {
+  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  }
+  else
+  {
+  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+  }   
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
@@ -192,34 +209,52 @@ void OnTick()
   }
   }  
   }    
-  }  
+  }
+  
+  
+    
   // overbought conditions where sentiment is to sell down
   if (myRSIValue > 69 && myCCIValue > 99)
   {
   //PlaySound("alert.wav");
-  
+  if(!inTrade && spanRange > maxAllowedDist)
+  {
   tradeStarted = true; 
   
- // conditions for overbought
+  // conditions for overbought
   
   if (awaitEntry < waitTime)
   {
-  if(!inTrade && spanRange > maxAllowedDist && numOfTradesOpen < 4)
+  if(!inTrade && numOfTradesOpen < 3)
   {
   if(spanRange < -3 || spanRange > 3)
   {
-  trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
+  if(numOfTradesOpen < 2)
+  {
+  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+  }
+  else
+  {
+  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  }
+  
   //trade.Buy(0.01,NULL,Ask,(0),(Ask+1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
-  numOfTradesOpen = numOfTradesOpen + 1;
+  
   awaitEntry = 0;
   Action = "sell";
   }
   }  
   }   
-  } 
+  }
   
+  
+ 
+  }
+  
+  
+  // OB OS conditions
   
   
   
@@ -262,22 +297,30 @@ void OnTick()
   awaitEntry = 0;
   tradeStarted = false;
   inTrade = false;
+  
+  if(Balance > lastBalance)
+  {
+  lastBalance = Balance;
+  }  
   }
   
-  //P&L events
-  if(PL > 2)
-  {// pl start    
-  trade.PositionClose(Symbol());
-  inTrade2 = false;
-  numOfTradesOpen = 0; 
-  }// pl end
   
+  if(PL > 5)
+  {
+  if(numOfTradesOpen!=0)
+  {
+  numOfTradesOpen = numOfTradesOpen - 1;
+  }  
+  trade.PositionClose(Symbol());
+  } 
   
 
   
   
  //print values to screen  
- Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Span Range: ", spanRange);
+ Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", 
+ awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Span Range: ", spanRange, "\n\n", "last balance: ", lastBalance, 
+ "\n\n", "Trades open: ", numOfTradesOpen);
   
   
  }
