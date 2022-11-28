@@ -18,7 +18,8 @@ bool inTrade;
 bool inTrade2;
 int checkCycle;
 bool counterTrade;
-
+double spanRange;
+double maxAllowedDist;
 // Create an Array
 MqlRates PriceInfo[];
 
@@ -66,7 +67,7 @@ int OnInit()
 
  
   awaitEntry = 0;
-  waitTime = 2000;
+  waitTime = 1;
   entryThreshold = 20;
   tradeLevel = 0;
   waitTradeTime = 0;
@@ -76,6 +77,9 @@ int OnInit()
   priceRange = 0;
   checkCycle = 0;
   counterTrade = false;
+  spanRange = 0;
+  maxAllowedDist = 30;
+  
   
   return(INIT_SUCCEEDED);
   
@@ -145,7 +149,7 @@ void OnTick()
   double myTenkanSenValue=myTenkanSenArray[0];
  
 
-  
+  spanRange = myTenkanSenValue - ((mySpanAValue + mySpanBValue) / 2);
   
   
   // logic for alerting the user of a potential trade setup
@@ -172,11 +176,12 @@ void OnTick()
   
   // conditions for oversold
   
-  if (awaitEntry > waitTime)
+  if (awaitEntry < waitTime)
   {
-  if(!inTrade && myTenkanSenValue < (mySpanAValue - entryThreshold) && myTenkanSenValue < (mySpanBValue - entryThreshold ) && numOfTradesOpen < 4)
+  if(!inTrade && spanRange < -maxAllowedDist && numOfTradesOpen < 4)
   {  
-  
+  if(spanRange < -3 || spanRange > 3)
+  {
   trade.Buy(0.01,NULL,Ask,(0),(0),NULL); 
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
@@ -184,13 +189,10 @@ void OnTick()
   numOfTradesOpen = numOfTradesOpen + 1;
   awaitEntry = 0;
   Action = "buy";
+  }
   }  
   }    
-   
-  }   
-  
-  
-  
+  }  
   // overbought conditions where sentiment is to sell down
   if (myRSIValue > 69 && myCCIValue > 99)
   {
@@ -200,11 +202,12 @@ void OnTick()
   
  // conditions for overbought
   
-  if (awaitEntry > waitTime)
+  if (awaitEntry < waitTime)
   {
-  if(!inTrade && myTenkanSenValue > (mySpanAValue + entryThreshold) && myTenkanSenValue > (mySpanBValue + entryThreshold) && numOfTradesOpen < 4)
+  if(!inTrade && spanRange > maxAllowedDist && numOfTradesOpen < 4)
   {
-  Comment("Trying to open trade...");
+  if(spanRange < -3 || spanRange > 3)
+  {
   trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
   //trade.Buy(0.01,NULL,Ask,(0),(Ask+1000 * _Point),NULL);
   inTrade = true;
@@ -212,6 +215,7 @@ void OnTick()
   numOfTradesOpen = numOfTradesOpen + 1;
   awaitEntry = 0;
   Action = "sell";
+  }
   }  
   }   
   } 
@@ -253,7 +257,7 @@ void OnTick()
   checkCycle = checkCycle + 1;
   
   
-  if(awaitEntry > (waitTime * 2))
+  if(awaitEntry > (5000))
   {
   awaitEntry = 0;
   tradeStarted = false;
@@ -261,7 +265,7 @@ void OnTick()
   }
   
   //P&L events
-  if(PL > 5)
+  if(PL > 2)
   {// pl start    
   trade.PositionClose(Symbol());
   inTrade2 = false;
@@ -273,7 +277,7 @@ void OnTick()
   
   
  //print values to screen  
- Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", awaitEntry, "\n\n", "P&L: ", PL);
+ Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Span Range: ", spanRange);
   
   
  }
