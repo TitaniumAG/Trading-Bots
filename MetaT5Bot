@@ -6,7 +6,6 @@ bool userAlerted;
 string Action;
 int tickTradeDuration;
 bool tradeStarted;
-
 double lotSize;
 int awaitEntry;
 int waitTime;
@@ -18,13 +17,14 @@ bool inTrade;
 bool inTrade2;
 int checkCycle;
 bool counterTrade;
-double spanRange;
 double maxAllowedDist;
 double lastBalance;
 // Create an Array
 MqlRates PriceInfo[];
 
-double priceRange;
+double spanAverage;
+double spanLow;
+double spanHigh;
 
 double maxRiskAmt;
 
@@ -78,10 +78,11 @@ int OnInit()
   numOfTradesOpen = 0;
   inTrade = false;
   inTrade2 = false;  
-  priceRange = 0;
+  spanAverage = 0;
+  spanLow = 0;
+  spanHigh = 0;
   checkCycle = 0;
   counterTrade = false;
-  spanRange = 0;
   maxAllowedDist = 15;
   lotSize = 0.01;
   lastBalance = 0;
@@ -155,7 +156,9 @@ void OnTick()
   double myTenkanSenValue=myTenkanSenArray[0];
  
 
-  spanRange = myTenkanSenValue - ((mySpanAValue + mySpanBValue) / 2);
+  spanAverage = (mySpanAValue + mySpanBValue) / 2;  
+  spanHigh = spanAverage + 40;
+  spanLow = spanAverage - 40;
   
   
   // logic for alerting the user of a potential trade setup
@@ -177,7 +180,7 @@ void OnTick()
   if (myRSIValue < 31 && myCCIValue < -99)
   {
   //PlaySound("alert.wav");
-  if(spanRange < -maxAllowedDist)
+  if(myTenkanSenValue < spanLow)
   {
   tradeStarted = true;
   
@@ -186,30 +189,17 @@ void OnTick()
   
   if (awaitEntry < waitTime)
   {
-  if(!inTrade && numOfTradesOpen < 3)
-  {  
-  if(spanRange < -3 || spanRange > 3)
-  {
-  maxRiskAmt = 300;
-  }
-  if(numOfTradesOpen < 2)
-  {
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
-  }
-  else
-  {
-  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
-  }   
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
   awaitEntry = 0;
   Action = "buy";
-  }
   }  
-  }    
   }
+  }    
+  
   
   
     
@@ -217,40 +207,24 @@ void OnTick()
   if (myRSIValue > 69 && myCCIValue > 99)
   {
   //PlaySound("alert.wav");
-  if(!inTrade && spanRange > maxAllowedDist)
+  if(myTenkanSenValue > spanHigh)
   {
-  tradeStarted = true; 
+  tradeStarted = true;
+  
   
   // conditions for overbought
   
   if (awaitEntry < waitTime)
   {
-  if(!inTrade && numOfTradesOpen < 3)
-  {
-  if(spanRange < -3 || spanRange > 3)
-  {
-  if(numOfTradesOpen < 2)
-  {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
-  }
-  else
-  {
-  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
-  }
-  
-  //trade.Buy(0.01,NULL,Ask,(0),(Ask+1000 * _Point),NULL);
+  //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
-  
+  numOfTradesOpen = numOfTradesOpen + 1;
   awaitEntry = 0;
   Action = "sell";
-  }
   }  
-  }   
-  }
-  
-  
- 
+  } 
   }
   
   
@@ -289,10 +263,9 @@ void OnTick()
   waitTradeTime = 0;
   }
   
-  checkCycle = checkCycle + 1;
   
   
-  if(awaitEntry > (5000))
+  if(awaitEntry > (500))
   {
   awaitEntry = 0;
   tradeStarted = false;
@@ -305,7 +278,7 @@ void OnTick()
   }
   
   
-  if(PL > 5)
+  if(PL > 3)
   {
   if(numOfTradesOpen!=0)
   {
@@ -319,8 +292,7 @@ void OnTick()
   
  //print values to screen  
  Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", 
- awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Span Range: ", spanRange, "\n\n", "last balance: ", lastBalance, 
- "\n\n", "Trades open: ", numOfTradesOpen);
+ awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Action: ", Action);
   
   
  }
