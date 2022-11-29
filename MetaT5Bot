@@ -27,7 +27,8 @@ double maxRiskAmt;
 double coolDownPeriod;
 double trendingDuration;
 bool isHedgeTrade;
-
+double spanWidth;
+double acceptedSpanWidth;
 
 /*
 void OpenBuyOrder()
@@ -86,9 +87,11 @@ int OnInit()
   lotSize = 0.01;
   lastBalance = 0;
   maxRiskAmt = 300;
-  coolDownPeriod = 3000;
+  coolDownPeriod = 500;
   trendingDuration = 0;
   isHedgeTrade = false;
+  spanWidth = 0;
+  acceptedSpanWidth = 50;
   
   
   return(INIT_SUCCEEDED);
@@ -159,9 +162,10 @@ void OnTick()
   double myTenkanSenValue=myTenkanSenArray[0];
  
 
-  spanAverage = (mySpanAValue + mySpanBValue) / 2;  
+  spanAverage = MathAbs((mySpanAValue + mySpanBValue) / 2);  
   spanHigh = spanAverage + 40;
   spanLow = spanAverage - 40;
+  spanWidth = MathAbs(mySpanAValue - mySpanBValue);
   
   
   // logic for alerting the user of a potential trade setup
@@ -183,7 +187,7 @@ void OnTick()
   if (myRSIValue < 31 && myCCIValue < -99)
   {
   //PlaySound("alert.wav");
-  if(myTenkanSenValue < spanLow)
+  if(spanWidth > acceptedSpanWidth && myTenkanSenValue < spanLow)
   {
   tradeStarted = true;
   
@@ -210,7 +214,7 @@ void OnTick()
   if (myRSIValue > 69 && myCCIValue > 99)
   {
   //PlaySound("alert.wav");
-  if(myTenkanSenValue > spanHigh)
+  if(spanWidth > acceptedSpanWidth && myTenkanSenValue > spanHigh)
   {
   tradeStarted = true;
   
@@ -281,7 +285,7 @@ void OnTick()
   }
   
   
-  if(PL > 3)
+  if(PL > 2)
   {
   coolDownPeriod = 3000;
   isHedgeTrade = false;
@@ -304,7 +308,7 @@ void OnTick()
   
   
   
-  if(myRSIValue > 69 && trendingDuration > 4000)
+  if(myRSIValue > 69 && trendingDuration > 4000 && spanWidth > acceptedSpanWidth)
   {
   if (!isHedgeTrade)
   {
@@ -313,7 +317,7 @@ void OnTick()
   }
   }
   
-  if(myRSIValue < 31 && trendingDuration > 4000)
+  if(myRSIValue < 31 && trendingDuration > 4000 && spanWidth > acceptedSpanWidth)
   {
   if (!isHedgeTrade)
   {
@@ -323,9 +327,9 @@ void OnTick()
   }
   
   
-  if(trendingDuration  > 4000)
+  if(trendingDuration  > 2000 && spanWidth > acceptedSpanWidth)
   {
-  coolDownPeriod = 10000;
+  coolDownPeriod = 20000;
   waitTime = 1;
   //trade.PositionClose(Symbol());
   }
@@ -335,7 +339,8 @@ void OnTick()
   
  //print values to screen  
  Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", 
- awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Action: ", Action, "\n\n", "Trending duration: ", trendingDuration);
+ awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Action: ", Action, "\n\n", "Trending duration: ", trendingDuration,
+ "\n\n", "Span width", spanWidth);
   
   
  }
