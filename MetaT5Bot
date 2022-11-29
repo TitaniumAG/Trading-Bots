@@ -287,10 +287,11 @@ void OnTick()
   }
   
   
-  if(PL > 2)
+  if(PL > 5)
   {
   coolDownPeriod = 3000;
-  //isHedgeTrade = false;
+  isHedgeTradeSell = false;
+  isHedgeTradeBuy = false;
   if(numOfTradesOpen!=0)
   {
   numOfTradesOpen = numOfTradesOpen - 1;
@@ -318,19 +319,25 @@ void OnTick()
   isHedgeTradeBuy = false;
   }
   
-  if(myRSIValue > 69 && trendingDuration > 4000 && spanWidth > acceptedSpanWidth)
+  if(myRSIValue > 69 && myCCIValue > 99 && trendingDuration > 4000 && spanWidth > acceptedSpanWidth)
   {
   if (!isHedgeTradeBuy)
   {
+  if( myTenkanSenValue > spanHigh)
+  {
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  }
   isHedgeTradeBuy = true;
   }
   }
-  if(myRSIValue < 31 && trendingDuration > 4000 && spanWidth  < acceptedSpanWidth)
+  if(myRSIValue < 31 && myCCIValue < -99 && trendingDuration > 4000 && spanWidth  < acceptedSpanWidth)
   {
   if (isHedgeTradeSell == false)
   {
+  if( myTenkanSenValue < spanLow)
+  {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+  }
   isHedgeTradeSell = true;
   }
   }
