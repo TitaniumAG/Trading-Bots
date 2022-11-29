@@ -26,7 +26,8 @@ double spanHigh;
 double maxRiskAmt;
 double coolDownPeriod;
 double trendingDuration;
-bool isHedgeTrade;
+bool isHedgeTradeSell;
+bool isHedgeTradeBuy;
 double spanWidth;
 double acceptedSpanWidth;
 
@@ -89,7 +90,8 @@ int OnInit()
   maxRiskAmt = 300;
   coolDownPeriod = 500;
   trendingDuration = 0;
-  isHedgeTrade = false;
+  isHedgeTradeSell = false;
+  isHedgeTradeBuy = false;
   spanWidth = 0;
   acceptedSpanWidth = 50;
   
@@ -306,25 +308,30 @@ void OnTick()
   
   }
   
-  if(myRSIValue > 40 || myRSIValue < 50)
+  if(myRSIValue > 30)
   {
-  //isHedgeTrade = false;
+  isHedgeTradeSell = false;
+  }
+  
+  if(myRSIValue < 70)
+  {
+  isHedgeTradeBuy = false;
   }
   
   if(myRSIValue > 69 && trendingDuration > 4000 && spanWidth > acceptedSpanWidth)
   {
-  if (!isHedgeTrade)
+  if (!isHedgeTradeBuy)
   {
-  trade.Buy(1,NULL,Ask,(0),(0),NULL);
-  isHedgeTrade = true;
+  trade.Buy(0.03,NULL,Ask,(0),(0),NULL);
+  isHedgeTradeBuy = true;
   }
   }
   if(myRSIValue < 31 && trendingDuration > 4000 && spanWidth  < acceptedSpanWidth)
   {
-  if (!isHedgeTrade)
+  if (isHedgeTradeSell == false)
   {
-  trade.Sell(1,NULL,Ask,(0),(0),NULL);
-  isHedgeTrade = true;
+  trade.Sell(0.03,NULL,Ask,(0),(0),NULL);
+  isHedgeTradeSell = true;
   }
   }
   
@@ -342,7 +349,7 @@ void OnTick()
  //print values to screen  
  Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", 
  awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Action: ", Action, "\n\n", "Trending duration: ", trendingDuration,
- "\n\n", "Span width", spanWidth);
+ "\n\n", "Span width", spanWidth, "\n\n", "Hedging down: ", isHedgeTradeSell, "\n\n", "Hedging up: ", isHedgeTradeBuy);
   
   
  }
