@@ -19,15 +19,14 @@ int checkCycle;
 bool counterTrade;
 double maxAllowedDist;
 double lastBalance;
-// Create an Array
 MqlRates PriceInfo[];
-
 double spanAverage;
 double spanLow;
 double spanHigh;
-
 double maxRiskAmt;
-
+double coolDownPeriod;
+double trendingDuration;
+bool isHedgeTrade;
 
 
 /*
@@ -87,6 +86,10 @@ int OnInit()
   lotSize = 0.01;
   lastBalance = 0;
   maxRiskAmt = 300;
+  coolDownPeriod = 3000;
+  trendingDuration = 0;
+  isHedgeTrade = false;
+  
   
   return(INIT_SUCCEEDED);
   
@@ -187,7 +190,7 @@ void OnTick()
   
   // conditions for oversold
   
-  if (awaitEntry < waitTime)
+  if (awaitEntry < waitTime && trendingDuration < 4000)
   {
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
@@ -214,7 +217,7 @@ void OnTick()
   
   // conditions for overbought
   
-  if (awaitEntry < waitTime)
+  if (awaitEntry < waitTime && trendingDuration < 4000)
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
@@ -265,7 +268,7 @@ void OnTick()
   
   
   
-  if(awaitEntry > (500))
+  if(awaitEntry > (coolDownPeriod))
   {
   awaitEntry = 0;
   tradeStarted = false;
@@ -280,6 +283,8 @@ void OnTick()
   
   if(PL > 3)
   {
+  coolDownPeriod = 3000;
+  isHedgeTrade = false;
   if(numOfTradesOpen!=0)
   {
   numOfTradesOpen = numOfTradesOpen - 1;
@@ -287,12 +292,50 @@ void OnTick()
   trade.PositionClose(Symbol());
   } 
   
+  if(myRSIValue > 69 || myRSIValue < 31)
+  {
+  trendingDuration = trendingDuration + 1;
+  }
+  else
+  {
+  trendingDuration = 0;
+  
+  }
+  
+  
+  
+  if(myRSIValue > 69 && trendingDuration > 4000)
+  {
+  if (!isHedgeTrade)
+  {
+  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  isHedgeTrade = true;
+  }
+  }
+  
+  if(myRSIValue < 31 && trendingDuration > 4000)
+  {
+  if (!isHedgeTrade)
+  {
+  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+  isHedgeTrade = true;
+  }
+  }
+  
+  
+  if(trendingDuration  > 4000)
+  {
+  coolDownPeriod = 10000;
+  waitTime = 1;
+  //trade.PositionClose(Symbol());
+  }
+  
 
   
   
  //print values to screen  
  Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", 
- awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Action: ", Action);
+ awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Action: ", Action, "\n\n", "Trending duration: ", trendingDuration);
   
   
  }
