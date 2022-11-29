@@ -328,7 +328,7 @@ void OnTick()
   if(PL < -50)
   {
   
-  if(awaitEntry < waitTime && trendingDuration > 4000)
+  if(awaitEntry < waitTime && trendingDuration > 2000)
   {
   if (isHedgeTradeSell == false)
   {
@@ -341,7 +341,7 @@ void OnTick()
   }  
   
   
-  if(awaitEntry < waitTime && trendingDuration > 4000)
+  if(awaitEntry < waitTime && trendingDuration > 2000)
   {
   if (isHedgeTradeBuy == false)
   {
