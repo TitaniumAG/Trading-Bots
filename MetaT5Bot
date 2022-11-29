@@ -30,6 +30,7 @@ bool isHedgeTradeSell;
 bool isHedgeTradeBuy;
 double spanWidth;
 double acceptedSpanWidth;
+string tradeStatus;
 
 /*
 void OpenBuyOrder()
@@ -94,6 +95,7 @@ int OnInit()
   isHedgeTradeBuy = false;
   spanWidth = 0;
   acceptedSpanWidth = 50;
+  tradeStatus = "null";
   
   
   return(INIT_SUCCEEDED);
@@ -321,6 +323,45 @@ void OnTick()
   trade.PositionClose(Symbol());
   } 
   
+  
+  
+  if(PL < -50)
+  {
+  
+  if(awaitEntry < waitTime && trendingDuration > 4000)
+  {
+  if (isHedgeTradeSell == false)
+  {
+  if( myTenkanSenValue < spanLow)
+  {
+  trade.Sell(0.05,NULL,Ask,(0),(0),NULL);
+  }
+  isHedgeTradeSell = true;
+  }
+  }  
+  
+  
+  if(awaitEntry < waitTime && trendingDuration > 4000)
+  {
+  if (isHedgeTradeBuy == false)
+  {
+  if( myTenkanSenValue > spanHigh)
+  {
+  trade.Buy(0.05,NULL,Ask,(0),(0),NULL);
+  }
+  isHedgeTradeBuy = true;
+  }
+  }  
+   
+  
+  
+  
+  }
+ 
+  
+  
+  
+  
   if(myRSIValue > 69 || myRSIValue < 31)
   {
   trendingDuration = trendingDuration + 1;
@@ -342,30 +383,6 @@ void OnTick()
   }
   
   
-  /*
-  if(myRSIValue > 69 && myCCIValue > 99 && trendingDuration > 4000 && spanWidth > acceptedSpanWidth)
-  {
-  if (!isHedgeTradeBuy)
-  {
-  if( myTenkanSenValue > spanHigh)
-  {
-  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
-  }
-  isHedgeTradeBuy = true;
-  }
-  }
-  if(myRSIValue < 31 && myCCIValue < -99 && trendingDuration > 4000 && spanWidth  < acceptedSpanWidth)
-  {
-  if (isHedgeTradeSell == false)
-  {
-  if( myTenkanSenValue < spanLow)
-  {
-  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
-  }
-  isHedgeTradeSell = true;
-  }
-  }
-  */
   
   if(trendingDuration  > 4000)
   {
@@ -380,7 +397,8 @@ void OnTick()
  //print values to screen  
  Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", 
  awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Action: ", Action, "\n\n", "Trending duration: ", trendingDuration,
- "\n\n", "Span width", spanWidth, "\n\n", "Hedging down: ", isHedgeTradeSell, "\n\n", "Hedging up: ", isHedgeTradeBuy);
+ "\n\n", "Span width", spanWidth, "\n\n", "Hedging down: ", isHedgeTradeSell, "\n\n", "Hedging up: ", isHedgeTradeBuy,
+ "\n\n", "Trade status: ", tradeStatus);
   
   
  }
