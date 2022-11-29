@@ -308,12 +308,12 @@ void OnTick()
   
   }
   
-  if(myRSIValue > 30)
+  if(myRSIValue > 70)
   {
   isHedgeTradeSell = false;
   }
   
-  if(myRSIValue < 70)
+  if(myRSIValue < 30)
   {
   isHedgeTradeBuy = false;
   }
