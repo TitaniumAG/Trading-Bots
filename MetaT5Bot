@@ -322,7 +322,7 @@ void OnTick()
   {
   if (!isHedgeTradeBuy)
   {
-  trade.Buy(0.03,NULL,Ask,(0),(0),NULL);
+  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
   isHedgeTradeBuy = true;
   }
   }
@@ -330,7 +330,7 @@ void OnTick()
   {
   if (isHedgeTradeSell == false)
   {
-  trade.Sell(0.03,NULL,Ask,(0),(0),NULL);
+  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
   isHedgeTradeSell = true;
   }
   }
