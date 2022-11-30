@@ -93,7 +93,7 @@ int OnInit()
   lotSize = 0.01;
   lastBalance = 0;
   maxRiskAmt = 300;
-  defaultCoolDownTime = 80;
+  defaultCoolDownTime = 300;
   coolDownPeriod = defaultCoolDownTime;
   trendingDuration = 0;
   isHedgeTradeSell = false;
@@ -102,8 +102,8 @@ int OnInit()
   acceptedSpanWidth = 80;
   tradeStatus = "null";
   takeProfit = 1;
-  stopLoss = 2;
-  maxTrendingDuration = 4000;
+  stopLoss = 50;
+  maxTrendingDuration = 2000;
   
   
   return(INIT_SUCCEEDED);
@@ -244,7 +244,7 @@ void OnTick()
   
   // conditions for overbought
   
-  if (awaitEntry < waitTime && trendingDuration < 4000)
+  if (awaitEntry < waitTime && trendingDuration < maxTrendingDuration)
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
@@ -254,7 +254,7 @@ void OnTick()
   awaitEntry = 0;
   Action = "sell";
   }
-  if(awaitEntry < waitTime && trendingDuration > 4000)
+  if(awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
   {
   if (isHedgeTradeBuy == false)
   {
