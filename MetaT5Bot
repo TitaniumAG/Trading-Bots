@@ -92,7 +92,7 @@ int OnInit()
   counterTrade = false;
   maxAllowedDist = 20;
   lotSize = 0.01;
-  lotSizeHedging = 0.01;
+  lotSizeHedging = 0.02;
   lastBalance = 0;
   maxRiskAmt = 300;
   tradingFrequency = 300;
@@ -101,11 +101,11 @@ int OnInit()
   isHedgeTradeSell = false;
   isHedgeTradeBuy = false;
   spanWidth = 0;
-  acceptedSpanWidth = 80;
+  acceptedSpanWidth = 8;
   tradeStatus = "null";
   takeProfit = 1;
-  stopLoss = 40;
-  maxTrendingDuration = 2000;
+  stopLoss = 20;
+  maxTrendingDuration = 500;
   
   
   return(INIT_SUCCEEDED);
@@ -198,7 +198,7 @@ void OnTick()
   
   
   // oversold conditions where sentiment is to buy up
-  if (myRSIValue < 31 && myCCIValue < -99)
+  if (myRSIValue < 20 && myCCIValue < -100)
   {
   //PlaySound("alert.wav");
   if(spanWidth > acceptedSpanWidth && myTenkanSenValue < spanLow)
@@ -212,7 +212,6 @@ void OnTick()
   {
   tradeStatus = "buy";
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
-  trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
@@ -237,7 +236,7 @@ void OnTick()
   
     
   // overbought conditions where sentiment is to sell down
-  if (myRSIValue > 69 && myCCIValue > 99)
+  if (myRSIValue > 80 && myCCIValue > 100)
   {
   //PlaySound("alert.wav");
   if(spanWidth > acceptedSpanWidth && myTenkanSenValue > spanHigh)
@@ -251,7 +250,6 @@ void OnTick()
   {
   tradeStatus = "sell";
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
-  trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
@@ -271,9 +269,6 @@ void OnTick()
   }  
   } 
   }
-  
-  
-  // OB OS conditions
   
   
   
@@ -375,7 +370,7 @@ void OnTick()
   
   
   
-  if(myRSIValue > 69 || myRSIValue < 31)
+  if(myRSIValue > 80 || myRSIValue < 20)
   {
   trendingDuration = trendingDuration + 1;
   }
@@ -385,12 +380,12 @@ void OnTick()
   
   }
   
-  if(myRSIValue > 70)
+  if(myRSIValue > 80)
   {
   isHedgeTradeSell = false;
   }
   
-  if(myRSIValue < 30)
+  if(myRSIValue < 20)
   {
   isHedgeTradeBuy = false;
   }
