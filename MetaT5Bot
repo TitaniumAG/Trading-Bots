@@ -90,9 +90,9 @@ int OnInit()
   spanHigh = 0;
   checkCycle = 0;
   counterTrade = false;
-  maxAllowedDist = 15;
+  maxAllowedDist = 20;
   lotSize = 0.01;
-  lotSizeHedging = 0.02;
+  lotSizeHedging = 0.01;
   lastBalance = 0;
   maxRiskAmt = 300;
   tradingFrequency = 300;
@@ -103,8 +103,8 @@ int OnInit()
   spanWidth = 0;
   acceptedSpanWidth = 80;
   tradeStatus = "null";
-  takeProfit = 0.02;
-  stopLoss = 50;
+  takeProfit = 1;
+  stopLoss = 40;
   maxTrendingDuration = 2000;
   
   
@@ -339,6 +339,7 @@ void OnTick()
   
   if(PL < -stopLoss)
   {
+  
   tradeStatus = "Hedging!";
   if(awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
   {
