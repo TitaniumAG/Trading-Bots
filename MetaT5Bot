@@ -104,7 +104,7 @@ int OnInit()
   acceptedSpanWidth = 80;
   tradeStatus = "null";
   takeProfit = 1;
-  stopLoss = 35;
+  stopLoss = 50;
   maxTrendingDuration = 2000;
   
   
