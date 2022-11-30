@@ -210,7 +210,7 @@ void OnTick()
   {
   tradeStatus = "buy";
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
-  //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
+  trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
@@ -249,7 +249,7 @@ void OnTick()
   {
   tradeStatus = "sell";
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
-  //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
+  trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
   inTrade = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
