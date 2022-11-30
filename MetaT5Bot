@@ -31,6 +31,7 @@ bool isHedgeTradeBuy;
 double spanWidth;
 double acceptedSpanWidth;
 string tradeStatus;
+double defaultCoolDownTime;
 
 /*
 void OpenBuyOrder()
@@ -89,12 +90,13 @@ int OnInit()
   lotSize = 0.01;
   lastBalance = 0;
   maxRiskAmt = 300;
-  coolDownPeriod = 5000;
+  defaultCoolDownTime = 300;
+  coolDownPeriod = defaultCoolDownTime;
   trendingDuration = 0;
   isHedgeTradeSell = false;
   isHedgeTradeBuy = false;
   spanWidth = 0;
-  acceptedSpanWidth = 50;
+  acceptedSpanWidth = 80;
   tradeStatus = "null";
   
   
@@ -311,9 +313,9 @@ void OnTick()
   }
   
   
-  if(PL > 5)
+  if(PL > 1)
   {
-  coolDownPeriod = 5000;
+  coolDownPeriod = defaultCoolDownTime;
   isHedgeTradeSell = false;
   isHedgeTradeBuy = false;
   if(numOfTradesOpen!=0)
@@ -395,10 +397,10 @@ void OnTick()
   
   
  //print values to screen  
- Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n\n", "Entry wait time: ", 
- awaitEntry, "\n\n", "P&L: ", PL, "\n\n", "Action: ", Action, "\n\n", "Trending duration: ", trendingDuration,
- "\n\n", "Span width", spanWidth, "\n\n", "Hedging down: ", isHedgeTradeSell, "\n\n", "Hedging up: ", isHedgeTradeBuy,
- "\n\n", "Trade status: ", tradeStatus);
+ Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n", "Entry wait time: ", 
+ awaitEntry, "\n", "P&L: ", PL, "\n", "Action: ", Action, "\n", "Trending duration: ", trendingDuration,
+ "\n", "Span width", spanWidth, "\n", "Hedging down: ", isHedgeTradeSell, "\n", "Hedging up: ", isHedgeTradeBuy,
+ "\n", "Trade status: ", tradeStatus, "Trade started: ", tradeStarted);
   
   
  }
