@@ -1,4 +1,4 @@
-// creatre an instance of ctrade
+#// creatre an instance of ctrade
 #include <Trade\trade.mqh>
 CTrade trade;
 
@@ -105,7 +105,7 @@ int OnInit()
   tradeStatus = "null";
   takeProfit = 1;
   stopLoss = 50;
-  maxTrendingDuration = 2000;
+  maxTrendingDuration = 4000;
   
   
   return(INIT_SUCCEEDED);
