@@ -103,7 +103,7 @@ int OnInit()
   tradeStatus = "null";
   takeProfit = 1;
   stopLoss = 50;
-  maxTrendingDuration = 1000;
+  maxTrendingDuration = 2000;
   
   
   return(INIT_SUCCEEDED);
@@ -206,7 +206,7 @@ void OnTick()
   
   // conditions for oversold
   
-  if (awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
+  if (awaitEntry < waitTime && trendingDuration < maxTrendingDuration)
   {
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
@@ -216,7 +216,7 @@ void OnTick()
   awaitEntry = 0;
   Action = "buy";
   }
-  if(awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
+  if(awaitEntry < waitTime && trendingDuration < maxTrendingDuration)
   {
   if (isHedgeTradeSell == false)
   {
@@ -244,7 +244,7 @@ void OnTick()
   
   // conditions for overbought
   
-  if (awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
+  if (awaitEntry < waitTime && trendingDuration < maxTrendingDuration)
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
   //trade.Sell(0.01,NULL,Ask,(0),(Ask-1000 * _Point),NULL);
@@ -254,7 +254,7 @@ void OnTick()
   awaitEntry = 0;
   Action = "sell";
   }
-  if(awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
+  if(awaitEntry < waitTime && trendingDuration < maxTrendingDuration)
   {
   if (isHedgeTradeBuy == false)
   {
