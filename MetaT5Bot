@@ -35,6 +35,7 @@ double takeProfit;
 double stopLoss;
 double maxTrendingDuration;
 double tradingFrequency;
+double lotSizeHedging;
 
 /*
 void OpenBuyOrder()
@@ -91,6 +92,7 @@ int OnInit()
   counterTrade = false;
   maxAllowedDist = 15;
   lotSize = 0.01;
+  lotSizeHedging = 0.05;
   lastBalance = 0;
   maxRiskAmt = 300;
   tradingFrequency = 300;
@@ -223,7 +225,7 @@ void OnTick()
   {
   if( myTenkanSenValue < spanLow)
   {
-  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+  trade.Sell(lotSizeHedging,NULL,Ask,(0),(0),NULL);
   }
   isHedgeTradeSell = true;
   }
@@ -262,7 +264,7 @@ void OnTick()
   {
   if( myTenkanSenValue > spanHigh)
   {
-  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  trade.Buy(lotSizeHedging,NULL,Ask,(0),(0),NULL);
   }
   isHedgeTradeBuy = true;
   }
