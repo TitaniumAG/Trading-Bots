@@ -32,6 +32,8 @@ double spanWidth;
 double acceptedSpanWidth;
 string tradeStatus;
 double defaultCoolDownTime;
+double takeProfit;
+double stopLoss;
 
 /*
 void OpenBuyOrder()
@@ -98,6 +100,8 @@ int OnInit()
   spanWidth = 0;
   acceptedSpanWidth = 80;
   tradeStatus = "null";
+  takeProfit = 2;
+  stopLoss = 50;
   
   
   return(INIT_SUCCEEDED);
@@ -313,7 +317,7 @@ void OnTick()
   }
   
   
-  if(PL > 1)
+  if(PL > takeProfit)
   {
   coolDownPeriod = defaultCoolDownTime;
   isHedgeTradeSell = false;
@@ -327,7 +331,7 @@ void OnTick()
   
   
   
-  if(PL < -50)
+  if(PL < -stopLoss)
   {
   
   if(awaitEntry < waitTime && trendingDuration > 2000)
