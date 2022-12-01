@@ -1,5 +1,6 @@
-// MetaT5Bot //
-// Created by: Luke Jeffers //
+// MetaT5Bot //////////////////////////////////
+// © 2022 Luke Jeffers, All rights reserved.// 
+/////////////////////////////////////////////
 
 // This robot pushes really hard by default but it is fairly safe. Lower the "lotSizeHedging" to 0.01 or 0.02 to lower risk.
 // A balance of $500 should be fine with the current settings. 
