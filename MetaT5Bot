@@ -1,3 +1,9 @@
+// MetaT5Bot //
+// Created by: Luke Jeffers //
+
+// This robot pushes really hard by default but it is fairly safe. Lower the "lotSizeHedging" to 0.01 or 0.02 to lower risk.
+
+
 // creatre an instance of ctrade
 #include <Trade\trade.mqh>
 CTrade trade;
@@ -92,7 +98,7 @@ int OnInit()
   counterTrade = false;
   maxAllowedDist = 20;
   lotSize = 0.01;
-  lotSizeHedging = 0.02;
+  lotSizeHedging = 0.3;
   lastBalance = 0;
   maxRiskAmt = 300;
   tradingFrequency = 300;
@@ -103,9 +109,9 @@ int OnInit()
   spanWidth = 0;
   acceptedSpanWidth = 8;
   tradeStatus = "null";
-  takeProfit = 1;
-  stopLoss = 20;
-  maxTrendingDuration = 500;
+  takeProfit = 2;
+  stopLoss = 5;
+  maxTrendingDuration = 100;
   
   
   return(INIT_SUCCEEDED);
