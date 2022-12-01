@@ -2,6 +2,7 @@
 // Created by: Luke Jeffers //
 
 // This robot pushes really hard by default but it is fairly safe. Lower the "lotSizeHedging" to 0.01 or 0.02 to lower risk.
+// A balance of $500 should be fine with the current settings. 
 
 
 // creatre an instance of ctrade
