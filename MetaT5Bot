@@ -2,8 +2,7 @@
 // © 2022 Luke Jeffers, All rights reserved.// 
 /////////////////////////////////////////////
 
-// This robot pushes really hard by default but it is fairly safe. Lower the "lotSizeHedging" to 0.01 or 0.02 to lower risk.
-// A balance of $500 should be fine with the current settings. 
+// This robot is still under heavy development and may not produce the results you expect. 
 
 
 // creatre an instance of ctrade
@@ -21,7 +20,8 @@ int entryThreshold;
 int tradeLevel;
 int waitTradeTime;
 int numOfTradesOpen;
-bool inTrade;
+bool inTradeBuy;
+bool inTradeSell;
 bool inTrade2;
 int checkCycle;
 bool counterTrade;
@@ -45,6 +45,15 @@ double maxTrendingDuration;
 double tradingFrequency;
 double lotSizeHedging;
 
+double myTenkanSenValue;
+
+bool p1Set;
+bool p2Set;
+bool p3Set;
+double p1;
+double p2;
+double p3;
+double pStep;
 /*
 void OpenBuyOrder()
    {
@@ -77,6 +86,7 @@ void OpenBuyOrder()
 
 
 
+
 int OnInit()
   {
   userAlerted = false;
@@ -91,36 +101,64 @@ int OnInit()
   tradeLevel = 0;
   waitTradeTime = 0;
   numOfTradesOpen = 0;
-  inTrade = false;
+  inTradeBuy = false;
+  inTradeSell = false;
   inTrade2 = false;  
   spanAverage = 0;
   spanLow = 0;
   spanHigh = 0;
   checkCycle = 0;
   counterTrade = false;
-  maxAllowedDist = 20;
-  lotSize = 0.01;
-  lotSizeHedging = 0.3;
+  lotSizeHedging = 0.01;
   lastBalance = 0;
   maxRiskAmt = 300;
-  tradingFrequency = 300;
-  coolDownPeriod = tradingFrequency;
+  
   trendingDuration = 0;
   isHedgeTradeSell = false;
   isHedgeTradeBuy = false;
   spanWidth = 0;
-  acceptedSpanWidth = 8;
   tradeStatus = "null";
-  takeProfit = 2;
-  stopLoss = 5;
+  p1Set = false;
+  p2Set = false; 
+  p3Set = false;
+  p1 = 0;
+  p2 = 0;
+  p3 = 0;
+  pStep = 0;
+  
+  
+  maxAllowedDist = 40;
+  acceptedSpanWidth = 3;
+  tradingFrequency = 20000;
+  coolDownPeriod = tradingFrequency;  
+  lotSize = 0.01;
+  takeProfit = 20;
+  stopLoss = 0;
   maxTrendingDuration = 100;
+  
   
   
   return(INIT_SUCCEEDED);
   
   }
 
-
+ void CreatePriceReport()
+{
+ pStep = pStep + 1;
+ 
+ if(pStep == 1)
+ {
+ p1 = myTenkanSenValue;
+ }
+ if(pStep == 2)
+ {
+ p2 = myTenkanSenValue;
+ }
+ if(pStep == 3)
+ {
+ p3 = myTenkanSenValue;
+ }
+}
 
 
 void OnTick()
@@ -146,6 +184,7 @@ void OnTick()
   double mySpanAArray[];
   double mySpanBArray[];
   double myTenkanSenArray[];
+  
   
   
   // Sort it from current candle to oldest candle 
@@ -181,12 +220,18 @@ void OnTick()
   double myCCIValue=NormalizeDouble(myCCIArray[0],2);
   double mySpanAValue=mySpanAArray[0];
   double mySpanBValue=mySpanBArray[0];
-  double myTenkanSenValue=myTenkanSenArray[0];
+  myTenkanSenValue=myTenkanSenArray[0];
+  
+  
+ 
+  
+  
+  
  
 
   spanAverage = MathAbs((mySpanAValue + mySpanBValue) / 2);  
-  spanHigh = spanAverage + 40;
-  spanLow = spanAverage - 40;
+  spanHigh = spanAverage + maxAllowedDist;
+  spanLow = spanAverage - maxAllowedDist;
   spanWidth = MathAbs(mySpanAValue - mySpanBValue);
   
   
@@ -206,37 +251,40 @@ void OnTick()
   
   
   // oversold conditions where sentiment is to buy up
-  if (myRSIValue < 20 && myCCIValue < -100)
+  //if (myRSIValue < 31 && myCCIValue < -100)
+  if (myRSIValue < 31 && myCCIValue < -100)
   {
   //PlaySound("alert.wav");
   if(spanWidth > acceptedSpanWidth && myTenkanSenValue < spanLow)
   {
   tradeStarted = true;
+  tradeStatus = "Sell";
   
   
   // conditions for oversold
   
-  if (awaitEntry < waitTime && trendingDuration < maxTrendingDuration)
+  if (awaitEntry < waitTime)
   {
-  tradeStatus = "buy";
+  CreatePriceReport();
+  if(pStep > 3)
+  {
+  if(p3 > p1)
+  {
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
-  inTrade = true;
+  }
+  else
+  {
+  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+  }
+  }
+  
+  //trade.Sell(lotSize,NULL,Ask,(0),(Ask-takeProfit * _Point),NULL);
+  //trade.Buy(lotSize,NULL,Ask,(0),(Ask+takeProfit * _Point),NULL);
+  inTradeBuy = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
   awaitEntry = 0;
-  Action = "buy";
   }
-  if(awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
-  {
-  if (isHedgeTradeSell == false)
-  {
-  if( myTenkanSenValue < spanLow)
-  {
-  trade.Sell(lotSizeHedging,NULL,Ask,(0),(0),NULL);
-  }
-  isHedgeTradeSell = true;
-  }
-  }  
   }
   }    
   
@@ -244,37 +292,42 @@ void OnTick()
   
     
   // overbought conditions where sentiment is to sell down
-  if (myRSIValue > 80 && myCCIValue > 100)
+  // if (myRSIValue > 70 && myCCIValue > 100)
+  if (myRSIValue > 70 && myCCIValue > 100)
   {
   //PlaySound("alert.wav");
   if(spanWidth > acceptedSpanWidth && myTenkanSenValue > spanHigh)
   {
   tradeStarted = true;
+  tradeStatus = "Buy";
   
   
   // conditions for overbought
   
-  if (awaitEntry < waitTime && trendingDuration < maxTrendingDuration)
+  if (awaitEntry < waitTime)
   {
-  tradeStatus = "sell";
+  CreatePriceReport();
+  
+  if(pStep > 3)
+  {
+  if(p3 > p1)
+  {
+  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  }
+  else
+  {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
-  inTrade = true;
+  }
+  }
+ 
+
+  //trade.Buy(lotSize,NULL,Ask,(0),(Ask+takeProfit * _Point),NULL);
+  //trade.Sell(lotSize,NULL,Ask,(0),(Ask-takeProfit * _Point),NULL);
+  inTradeSell = true;
   inTrade2 = true;
   numOfTradesOpen = numOfTradesOpen + 1;
   awaitEntry = 0;
-  Action = "sell";
-  }
-  if(awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
-  {
-  if (isHedgeTradeBuy == false)
-  {
-  if( myTenkanSenValue > spanHigh)
-  {
-  trade.Buy(lotSizeHedging,NULL,Ask,(0),(0),NULL);
-  }
-  isHedgeTradeBuy = true;
-  }
-  }  
+  } 
   } 
   }
   
@@ -301,7 +354,7 @@ void OnTick()
    awaitEntry = awaitEntry + 1;
   }
   
-  if(inTrade)
+  if(inTradeBuy || inTradeSell)
   {
   waitTradeTime = waitTradeTime + 1;
   }
@@ -317,7 +370,12 @@ void OnTick()
   {
   awaitEntry = 0;
   tradeStarted = false;
-  inTrade = false;
+  isHedgeTradeSell = false;
+  isHedgeTradeBuy = false;
+  
+  
+  
+  
   
   if(Balance > lastBalance)
   {
@@ -328,57 +386,64 @@ void OnTick()
   
   if(PL > takeProfit)
   {
-  coolDownPeriod = tradingFrequency;
+  
+  tradeStarted = false;
   isHedgeTradeSell = false;
   isHedgeTradeBuy = false;
-  if(numOfTradesOpen!=0)
-  {
-  numOfTradesOpen = numOfTradesOpen - 1;
-  }  
+  inTradeBuy = false;
+  inTradeSell = false;
   trade.PositionClose(Symbol());
-  } 
+  p1 = 0;
+  p2 = 0;
+  p3 = 0;
+  pStep = 0;
+  
+  }
   
   
   
+ 
+  
+ /* 
+  // Hedging logic
   if(PL < -stopLoss)
   {
   
   tradeStatus = "Hedging!";
-  if(awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
+  if(Action == "sell")
   {
-  if (isHedgeTradeSell == false)
+  if (!isHedgeTradeSell && awaitEntry < waitTime && myCCIValue > 100)
   {
-  if( myTenkanSenValue < spanLow)
-  {
-  trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
-  }
+  
+  trade.Buy(lotSizeHedging,NULL,Ask,(0),(0),NULL);
+  
   isHedgeTradeSell = true;
   }
-  }  
-  
-  
-  if(awaitEntry < waitTime && trendingDuration > maxTrendingDuration)
-  {
-  if (isHedgeTradeBuy == false)
-  {
-  if( myTenkanSenValue > spanHigh)
-  {
-  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
   }
+  
+  
+  if(Action == "buy")
+  {
+  if (!isHedgeTradeBuy && awaitEntry < waitTime && myCCIValue < -100)
+  {
+  
+  trade.Sell(lotSizeHedging,NULL,Ask,(0),(0),NULL);
+  
   isHedgeTradeBuy = true;
   }
-  }  
-   
-  
-  
-  
   }
+  } 
+ */
+  
+  
+  
+
  
   
   
   
   
-  if(myRSIValue > 80 || myRSIValue < 20)
+  if(myRSIValue > 70 || myRSIValue < 30)
   {
   trendingDuration = trendingDuration + 1;
   }
@@ -388,23 +453,14 @@ void OnTick()
   
   }
   
-  if(myRSIValue > 80)
+  if(myRSIValue > 70)
   {
   isHedgeTradeSell = false;
   }
   
-  if(myRSIValue < 20)
+  if(myRSIValue < 30)
   {
   isHedgeTradeBuy = false;
-  }
-  
-  
-  
-  if(trendingDuration  > maxTrendingDuration)
-  {
-  coolDownPeriod = 20000;
-  waitTime = 1;
-  //trade.PositionClose(Symbol());
   }
   
 
@@ -414,7 +470,8 @@ void OnTick()
  Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n", "Entry wait time: ", 
  awaitEntry, "\n", "P&L: ", PL, "\n", "Action: ", Action, "\n", "Trending duration: ", trendingDuration,
  "\n", "Span width", spanWidth, "\n", "Hedging down: ", isHedgeTradeSell, "\n", "Hedging up: ", isHedgeTradeBuy,
- "\n", "Trade status: ", tradeStatus, "\n", "Trade started: ", tradeStarted);
+ "\n", "Trade status: ", tradeStatus, "\n", "Trade started: ", tradeStarted, "\n", "p1: ", p1, "\n", "p2: ", p2, 
+ "\n", "p3: ", p3);
   
   
  }
