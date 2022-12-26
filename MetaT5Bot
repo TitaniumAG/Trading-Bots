@@ -129,7 +129,7 @@ int OnInit()
   
   maxAllowedDist = 40;
   acceptedSpanWidth = 3;
-  tradingFrequency = 20000;
+  tradingFrequency = 500;
   coolDownPeriod = tradingFrequency;  
   lotSize = 0.01;
   takeProfit = 20;
@@ -258,7 +258,7 @@ void OnTick()
   if(spanWidth > acceptedSpanWidth && myTenkanSenValue < spanLow)
   {
   tradeStarted = true;
-  tradeStatus = "Sell";
+  
   
   
   // conditions for oversold
@@ -271,10 +271,12 @@ void OnTick()
   if(p3 > p1)
   {
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  tradeStatus = "buy";
   }
   else
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+  tradeStatus = "sell";
   }
   }
   
@@ -299,7 +301,7 @@ void OnTick()
   if(spanWidth > acceptedSpanWidth && myTenkanSenValue > spanHigh)
   {
   tradeStarted = true;
-  tradeStatus = "Buy";
+  
   
   
   // conditions for overbought
@@ -313,10 +315,12 @@ void OnTick()
   if(p3 > p1)
   {
   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  tradeStatus = "buy";
   }
   else
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+  tradeStatus = "sell";
   }
   }
  
@@ -398,6 +402,34 @@ void OnTick()
   p3 = 0;
   pStep = 0;
   
+  }
+  
+  if (tradeStatus == "sell" && myRSIValue > 70 && myCCIValue > 100)
+  {
+  tradeStarted = false;
+  isHedgeTradeSell = false;
+  isHedgeTradeBuy = false;
+  inTradeBuy = false;
+  inTradeSell = false;
+  trade.PositionClose(Symbol());
+  p1 = 0;
+  p2 = 0;
+  p3 = 0;
+  pStep = 0;
+  }
+  
+  if (tradeStatus == "buy" && myRSIValue < 31 && myCCIValue < -100)
+  {
+  tradeStarted = false;
+  isHedgeTradeSell = false;
+  isHedgeTradeBuy = false;
+  inTradeBuy = false;
+  inTradeSell = false;
+  trade.PositionClose(Symbol());
+  p1 = 0;
+  p2 = 0;
+  p3 = 0;
+  pStep = 0;
   }
   
   
