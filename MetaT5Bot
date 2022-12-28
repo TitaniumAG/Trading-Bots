@@ -54,6 +54,9 @@ double p1;
 double p2;
 double p3;
 double pStep;
+string tradeBias;
+bool biasSellSet;
+bool biasBuySet;
 /*
 void OpenBuyOrder()
    {
@@ -129,12 +132,15 @@ int OnInit()
   
   maxAllowedDist = 40;
   acceptedSpanWidth = 3;
-  tradingFrequency = 500;
+  tradingFrequency = 2000;
   coolDownPeriod = tradingFrequency;  
   lotSize = 0.01;
-  takeProfit = 20;
+  takeProfit = 33;
   stopLoss = 0;
   maxTrendingDuration = 100;
+  tradeBias = "null";
+  biasSellSet = false;
+  biasBuySet = false;
   
   
   
@@ -148,6 +154,7 @@ int OnInit()
  
  if(pStep == 1)
  {
+ trade.PositionClose(Symbol());
  p1 = myTenkanSenValue;
  }
  if(pStep == 2)
@@ -247,6 +254,21 @@ void OnTick()
   }
   */
   
+  // set overal price bias to gauge price the level
+  
+  if(myTenkanSenValue > spanLow && !biasSellSet)
+  {
+  trade.PositionClose(Symbol());
+  biasSellSet = true;
+  biasBuySet = false;
+  }
+  
+  if(myTenkanSenValue < spanHigh && !biasBuySet)
+  {
+  trade.PositionClose(Symbol());
+  biasBuySet = true;
+  biasSellSet = false;
+  }   
 
   
   
@@ -268,15 +290,15 @@ void OnTick()
   CreatePriceReport();
   if(pStep > 3)
   {
-  if(p3 > p1)
-  {
-  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
-  tradeStatus = "buy";
-  }
-  else
+  if(p3 < p1)
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
   tradeStatus = "sell";
+  }
+  else
+  {  
+  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  tradeStatus = "buy";
   }
   }
   
@@ -309,18 +331,17 @@ void OnTick()
   if (awaitEntry < waitTime)
   {
   CreatePriceReport();
-  
   if(pStep > 3)
   {
-  if(p3 > p1)
-  {
-  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
-  tradeStatus = "buy";
-  }
-  else
+  if(p3 < p1)
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
   tradeStatus = "sell";
+  }
+  else
+  {  
+  trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+  tradeStatus = "buy";
   }
   }
  
@@ -404,7 +425,8 @@ void OnTick()
   
   }
   
-  if (tradeStatus == "sell" && myRSIValue > 70 && myCCIValue > 100)
+  /*
+  if (tradeStatus == "buy" && myTenkanSenValue > spanHigh)
   {
   tradeStarted = false;
   isHedgeTradeSell = false;
@@ -416,9 +438,16 @@ void OnTick()
   p2 = 0;
   p3 = 0;
   pStep = 0;
+  trade.Buy(0.01,NULL,Ask,(0),(0),NULL);
+  trade.Buy(0.01,NULL,Ask,(0),(0),NULL);
+  trade.Buy(0.01,NULL,Ask,(0),(0),NULL);
+  trade.Buy(0.01,NULL,Ask,(0),(0),NULL);
+  tradeStatus = "null";
+  
+    
   }
   
-  if (tradeStatus == "buy" && myRSIValue < 31 && myCCIValue < -100)
+  if (tradeStatus == "sell" && myTenkanSenValue < spanLow)
   {
   tradeStarted = false;
   isHedgeTradeSell = false;
@@ -430,49 +459,14 @@ void OnTick()
   p2 = 0;
   p3 = 0;
   pStep = 0;
-  }
-  
-  
-  
+  trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
+  trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
+  trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
+  trade.Sell(0.01,NULL,Ask,(0),(0),NULL);
+  tradeStatus = "null";
  
-  
- /* 
-  // Hedging logic
-  if(PL < -stopLoss)
-  {
-  
-  tradeStatus = "Hedging!";
-  if(Action == "sell")
-  {
-  if (!isHedgeTradeSell && awaitEntry < waitTime && myCCIValue > 100)
-  {
-  
-  trade.Buy(lotSizeHedging,NULL,Ask,(0),(0),NULL);
-  
-  isHedgeTradeSell = true;
   }
-  }
-  
-  
-  if(Action == "buy")
-  {
-  if (!isHedgeTradeBuy && awaitEntry < waitTime && myCCIValue < -100)
-  {
-  
-  trade.Sell(lotSizeHedging,NULL,Ask,(0),(0),NULL);
-  
-  isHedgeTradeBuy = true;
-  }
-  }
-  } 
- */
-  
-  
-  
-
- 
-  
-  
+  */
   
   
   if(myRSIValue > 70 || myRSIValue < 30)
