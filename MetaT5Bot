@@ -1,5 +1,5 @@
 // MetaT5Bot //////////////////////////////////
-// © 2022 Luke Jeffers, All rights reserved.// 
+// US30/ Dow Jones Trade Bot                // 
 /////////////////////////////////////////////
 
 // This robot is still under heavy development and may not produce the results you expect. 
@@ -135,7 +135,7 @@ int OnInit()
   tradingFrequency = 2000;
   coolDownPeriod = tradingFrequency;  
   lotSize = 0.01;
-  takeProfit = 33;
+  takeProfit = 30;
   stopLoss = 0;
   maxTrendingDuration = 100;
   tradeBias = "null";
@@ -290,7 +290,7 @@ void OnTick()
   CreatePriceReport();
   if(pStep > 3)
   {
-  if(p3 < p1)
+  if(p3 > p1)
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
   tradeStatus = "sell";
@@ -333,7 +333,7 @@ void OnTick()
   CreatePriceReport();
   if(pStep > 3)
   {
-  if(p3 < p1)
+  if(p3 > p1)
   {
   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
   tradeStatus = "sell";
