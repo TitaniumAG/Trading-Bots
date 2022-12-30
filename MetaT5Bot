@@ -493,7 +493,7 @@ void OnTick()
   
   
  //print values to screen  
- Comment(myCCIValue , "\n", myRSIValue, "\n", Balance, "\n", Equity, "\n", "Entry wait time: ", 
+ Comment("CCI: ", myCCIValue , "\n", "RSI: ", myRSIValue, "\n", "Balance: " , Balance, "\n", Equity, "\n", "Entry wait time: ", 
  awaitEntry, "\n", "P&L: ", PL, "\n", "Action: ", Action, "\n", "Trending duration: ", trendingDuration,
  "\n", "Span width", spanWidth, "\n", "Hedging down: ", isHedgeTradeSell, "\n", "Hedging up: ", isHedgeTradeBuy,
  "\n", "Trade status: ", tradeStatus, "\n", "Trade started: ", tradeStarted, "\n", "p1: ", p1, "\n", "p2: ", p2, 
