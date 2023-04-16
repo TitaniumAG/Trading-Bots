@@ -38,9 +38,12 @@ bool isHedgeTradeBuy;
 double spanWidth;
 double acceptedSpanWidth;
 string tradeStatus;
+double interest;
 double currentPrice;
+double debt;
 double buyPrice;
 double sellPrice;
+double mult;
 double lastPL;
 bool hedgeBuy;
 bool hedgeSell;
@@ -136,9 +139,10 @@ int OnInit()
   p3 = 0;
   pStep = 0;
   
-  
-  
+  debt = 0;
+  interest = 20;
   acceptedSpanWidth = 3; 
+  mult = 3;
   maxAllowedDist = -40;
   currentPrice = 0;
   buyPrice = 0;
@@ -147,7 +151,7 @@ int OnInit()
   hedgeBuy = false;
   hedgeSell = false;
   defaultLotSize = 0.01;
-  priceRange = 200;
+  priceRange = 400;
   lotSize = defaultLotSize;
   tradeStarted = false;
   pendingSellSet = false;
@@ -263,14 +267,14 @@ void OnTick()
   
   // Initial Buy trade; oversold conditions where sentiment is to buy up
   //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue > spanHigh)
+  if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue > spanHigh && Balance > 0)
   {
   if(!tradeStarted)
    {
    buyPrice = currentPrice;
    sellPrice = currentPrice - priceRange;
    trade.Buy(defaultLotSize,NULL,Ask,(0),(0),NULL);
-   //hedgeBuy = false;
+   hedgeBuy = false;
    if(!pendingSellSet)
    {
    //stopLimit = OrderSend(request, result);
@@ -285,14 +289,14 @@ void OnTick()
   
   // Initial Sell trade; overbought conditions where sentiment is to sell down
   //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue < spanLow)
+  if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue < spanLow && Balance > 0)
   {
   if(!tradeStarted)
    {
    sellPrice = currentPrice;
    buyPrice = currentPrice + priceRange;   
    trade.Sell(defaultLotSize,NULL,Ask,(0),(0),NULL);
-   //hedgeSell = false;
+   hedgeSell = false;
    if(!pendingSellSet)
    {
    //stopLimit = OrderSend(request, result);
@@ -312,7 +316,7 @@ void OnTick()
   
   ////////////////////////////////////
   // starting the hedge trades
-  double mult = 3;
+  
    if(currentPrice < sellPrice && tradeStarted)
    {
    if(!hedgeSell)
@@ -341,8 +345,7 @@ void OnTick()
    }   
    
   // locking profit
-  double debt = MathAbs(lastPL);
-  double interest = 5;
+  debt = MathAbs(lastPL);
   if(PL > (debt + interest))
   {
   trade.PositionClose(Symbol());
@@ -356,6 +359,7 @@ void OnTick()
   pendingSellSet = false;
   debt = 0;
   }
+  
   
   
   
