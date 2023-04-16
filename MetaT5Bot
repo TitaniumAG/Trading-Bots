@@ -45,6 +45,7 @@ double lastPL;
 bool hedgeBuy;
 bool hedgeSell;
 bool pendingSellSet;
+double priceRange;
 double defaultLotSize;
 double lotSize;
 double maxTrendingDuration;
@@ -136,9 +137,9 @@ int OnInit()
   pStep = 0;
   
   
-  maxAllowedDist = 40;
-  acceptedSpanWidth = 3; 
   
+  acceptedSpanWidth = 3; 
+  maxAllowedDist = -40;
   currentPrice = 0;
   buyPrice = 0;
   sellPrice = 0;
@@ -146,6 +147,7 @@ int OnInit()
   hedgeBuy = false;
   hedgeSell = false;
   defaultLotSize = 0.01;
+  priceRange = 200;
   lotSize = defaultLotSize;
   tradeStarted = false;
   pendingSellSet = false;
@@ -261,14 +263,14 @@ void OnTick()
   
   // Initial Buy trade; oversold conditions where sentiment is to buy up
   //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue < 31 && myCCIValue < - 100)
+  if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue > spanHigh)
   {
   if(!tradeStarted)
    {
    buyPrice = currentPrice;
-   sellPrice = currentPrice - 50;
+   sellPrice = currentPrice - priceRange;
    trade.Buy(defaultLotSize,NULL,Ask,(0),(0),NULL);
-   hedgeBuy = false;
+   //hedgeBuy = false;
    if(!pendingSellSet)
    {
    //stopLimit = OrderSend(request, result);
@@ -283,14 +285,14 @@ void OnTick()
   
   // Initial Sell trade; overbought conditions where sentiment is to sell down
   //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue > 70 && myCCIValue > 100)
+  if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue < spanLow)
   {
   if(!tradeStarted)
    {
    sellPrice = currentPrice;
-   buyPrice = currentPrice + 50;   
+   buyPrice = currentPrice + priceRange;   
    trade.Sell(defaultLotSize,NULL,Ask,(0),(0),NULL);
-   hedgeSell = false;
+   //hedgeSell = false;
    if(!pendingSellSet)
    {
    //stopLimit = OrderSend(request, result);
@@ -341,7 +343,7 @@ void OnTick()
   // locking profit
   double debt = MathAbs(lastPL);
   double interest = 5;
-  if(PL > debt + interest)
+  if(PL > (debt + interest))
   {
   trade.PositionClose(Symbol());
   buyPrice = 0;
