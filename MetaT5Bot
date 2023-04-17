@@ -143,9 +143,9 @@ int OnInit()
   
   debt = 0;
   interest = 5;
-  acceptedSpanWidth = 3; 
-  mult = 2;
-  maxAllowedDist = -40;
+  acceptedSpanWidth = 1; 
+  mult = 3;
+  maxAllowedDist = 40;
   currentPrice = 0;
   buyPrice = 0;
   sellPrice = 0;
@@ -153,8 +153,8 @@ int OnInit()
   hedgeBuy = false;
   hedgeSell = false;
   defaultLotSize = 0.01;
-  priceRangePercentage = 0.0017;
-  priceMovePercentage = 0.0002;
+  priceRangePercentage = 0.0025;
+  priceMovePercentage = 0.00015;
   lotSize = defaultLotSize;
   tradeStarted = false;
   pendingSellSet = false;
@@ -166,24 +166,7 @@ int OnInit()
   
   }
 
- void CreatePriceReport()
-{
- pStep = pStep + 1;
  
- if(pStep == 1)
- {
- trade.PositionClose(Symbol());
- p1 = myTenkanSenValue;
- }
- if(pStep == 2)
- {
- p2 = myTenkanSenValue;
- }
- if(pStep == 3)
- {
- p3 = myTenkanSenValue;
- }
-}
 
 
 void OnTick()
@@ -271,14 +254,14 @@ void OnTick()
   
   // Initial Buy trade; oversold conditions where sentiment is to buy up
   //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue > spanHigh && Balance > 0)
+  if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
   {
   if(!tradeStarted)
    {
    buyPrice = currentPrice;
    sellPrice = currentPrice - (currentPrice * priceRangePercentage);
    trade.Buy(defaultLotSize,NULL,Ask,(0),(0),NULL);
-   hedgeSell = false;
+   hedgeBuy = true;
   
    
    tradeStarted = true;
@@ -289,14 +272,16 @@ void OnTick()
   
   // Initial Sell trade; overbought conditions where sentiment is to sell down
   //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue < spanLow && Balance > 0)
+  if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
   {
   if(!tradeStarted)
    {
    sellPrice = currentPrice;
    buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
    trade.Sell(defaultLotSize,NULL,Ask,(0),(0),NULL);
-   hedgeBuy = false;
+   
+   // Sell hedge prevention because we are already selling! Important!
+   hedgeSell = true;
    
    
    tradeStarted = true;
@@ -324,7 +309,7 @@ void OnTick()
    trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
    if((numSidesTested % 2) == 0)
    {
-   sellPrice = sellPrice - (sellPrice * priceMovePercentage);
+   //sellPrice = sellPrice - (sellPrice * priceMovePercentage);
    }  
    hedgeBuy = false;
    hedgeSell = true;
@@ -343,7 +328,7 @@ void OnTick()
    trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
    if((numSidesTested % 2) == 0)
    {
-   buyPrice = buyPrice - (buyPrice * priceMovePercentage);
+   //buyPrice = buyPrice - (buyPrice * priceMovePercentage);
    }
    hedgeSell = false;
    hedgeBuy = true;
@@ -352,7 +337,7 @@ void OnTick()
    
   // locking profit
   debt = MathAbs(lastPL);
-  if(PL > (debt + interest))
+  if(PL > debt + interest) //(debt + interest)
   {
   trade.PositionClose(Symbol());
   buyPrice = 0;
@@ -365,8 +350,13 @@ void OnTick()
   pendingSellSet = false;
   debt = 0;
   numSidesTested = 0;
+  awaitEntry = 2000;
   }
   
+  if (awaitEntry > 0)
+  {
+  awaitEntry--;
+  }
   
   
   
@@ -396,6 +386,7 @@ if (hedgeSell) {
                "Debt  | "+DoubleToString(debt,Digits()+1) + "\n"+
                "RSI  | "+DoubleToString(myRSIValue,Digits()+1) + "\n"+
                "CCI  | "+DoubleToString(myCCIValue,Digits()+1) + "\n"+
+               "Wait  | "+DoubleToString(awaitEntry,Digits()+1) + "\n"+
                "Balance  | "+DoubleToString(Balance,Digits()+1);
                
    Comment(text);
