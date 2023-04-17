@@ -48,7 +48,8 @@ double lastPL;
 bool hedgeBuy;
 bool hedgeSell;
 bool pendingSellSet;
-double priceRange;
+double priceRangePercentage;
+int numSidesTested;
 double defaultLotSize;
 double lotSize;
 double maxTrendingDuration;
@@ -140,7 +141,7 @@ int OnInit()
   pStep = 0;
   
   debt = 0;
-  interest = 20;
+  interest = 5;
   acceptedSpanWidth = 3; 
   mult = 3;
   maxAllowedDist = -40;
@@ -151,10 +152,11 @@ int OnInit()
   hedgeBuy = false;
   hedgeSell = false;
   defaultLotSize = 0.01;
-  priceRange = 400;
+  priceRangePercentage = 0.0017;
   lotSize = defaultLotSize;
   tradeStarted = false;
   pendingSellSet = false;
+  numSidesTested = 0;
   
   
   
@@ -272,7 +274,7 @@ void OnTick()
   if(!tradeStarted)
    {
    buyPrice = currentPrice;
-   sellPrice = currentPrice - priceRange;
+   sellPrice = currentPrice - (currentPrice * priceRangePercentage);
    trade.Buy(defaultLotSize,NULL,Ask,(0),(0),NULL);
    hedgeBuy = false;
    if(!pendingSellSet)
@@ -294,7 +296,7 @@ void OnTick()
   if(!tradeStarted)
    {
    sellPrice = currentPrice;
-   buyPrice = currentPrice + priceRange;   
+   buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
    trade.Sell(defaultLotSize,NULL,Ask,(0),(0),NULL);
    hedgeSell = false;
    if(!pendingSellSet)
@@ -321,10 +323,15 @@ void OnTick()
    {
    if(!hedgeSell)
    {
+   numSidesTested++;
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
    lotSize = lotSize * mult; 
-   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);  
+   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+   if((numSidesTested % 2) == 0)
+   {
+   sellPrice = sellPrice - (sellPrice * 0.00015);
+   }  
    hedgeBuy = false;
    hedgeSell = true;
    }   
@@ -335,10 +342,15 @@ void OnTick()
    {
    if(!hedgeBuy)
    {
+   numSidesTested++;
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
    lotSize = lotSize * mult;   
    trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+   if((numSidesTested % 2) == 0)
+   {
+   buyPrice = buyPrice - (buyPrice * 0.00015);
+   }
    hedgeSell = false;
    hedgeBuy = true;
    }   
@@ -358,6 +370,7 @@ void OnTick()
   lotSize = defaultLotSize;
   pendingSellSet = false;
   debt = 0;
+  numSidesTested = 0;
   }
   
   
