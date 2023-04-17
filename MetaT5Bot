@@ -49,6 +49,7 @@ bool hedgeBuy;
 bool hedgeSell;
 bool pendingSellSet;
 double priceRangePercentage;
+double priceMovePercentage;
 int numSidesTested;
 double defaultLotSize;
 double lotSize;
@@ -143,7 +144,7 @@ int OnInit()
   debt = 0;
   interest = 5;
   acceptedSpanWidth = 3; 
-  mult = 3;
+  mult = 2;
   maxAllowedDist = -40;
   currentPrice = 0;
   buyPrice = 0;
@@ -153,6 +154,7 @@ int OnInit()
   hedgeSell = false;
   defaultLotSize = 0.01;
   priceRangePercentage = 0.0017;
+  priceMovePercentage = 0.0002;
   lotSize = defaultLotSize;
   tradeStarted = false;
   pendingSellSet = false;
@@ -276,12 +278,8 @@ void OnTick()
    buyPrice = currentPrice;
    sellPrice = currentPrice - (currentPrice * priceRangePercentage);
    trade.Buy(defaultLotSize,NULL,Ask,(0),(0),NULL);
-   hedgeBuy = false;
-   if(!pendingSellSet)
-   {
-   //stopLimit = OrderSend(request, result);
-   pendingSellSet = true;
-   }
+   hedgeSell = false;
+  
    
    tradeStarted = true;
    }
@@ -298,12 +296,8 @@ void OnTick()
    sellPrice = currentPrice;
    buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
    trade.Sell(defaultLotSize,NULL,Ask,(0),(0),NULL);
-   hedgeSell = false;
-   if(!pendingSellSet)
-   {
-   //stopLimit = OrderSend(request, result);
-   pendingSellSet = true;
-   }
+   hedgeBuy = false;
+   
    
    tradeStarted = true;
    }
@@ -330,7 +324,7 @@ void OnTick()
    trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
    if((numSidesTested % 2) == 0)
    {
-   sellPrice = sellPrice - (sellPrice * 0.00015);
+   sellPrice = sellPrice - (sellPrice * priceMovePercentage);
    }  
    hedgeBuy = false;
    hedgeSell = true;
@@ -349,7 +343,7 @@ void OnTick()
    trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
    if((numSidesTested % 2) == 0)
    {
-   buyPrice = buyPrice - (buyPrice * 0.00015);
+   buyPrice = buyPrice - (buyPrice * priceMovePercentage);
    }
    hedgeSell = false;
    hedgeBuy = true;
