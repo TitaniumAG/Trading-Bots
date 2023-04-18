@@ -145,7 +145,7 @@ int OnInit()
   interest = 5;
   acceptedSpanWidth = 1; 
   mult = 3;
-  maxAllowedDist = 40;
+  maxAllowedDist = 20;
   currentPrice = 0;
   buyPrice = 0;
   sellPrice = 0;
@@ -153,7 +153,7 @@ int OnInit()
   hedgeBuy = false;
   hedgeSell = false;
   defaultLotSize = 0.01;
-  priceRangePercentage = 0.0025;
+  priceRangePercentage = 0.0017;
   priceMovePercentage = 0.00015;
   lotSize = defaultLotSize;
   tradeStarted = false;
