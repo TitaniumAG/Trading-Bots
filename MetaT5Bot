@@ -152,7 +152,7 @@ int OnInit()
   lastPL = 0;
   hedgeBuy = false;
   hedgeSell = false;
-  defaultLotSize = 0.01;
+  defaultLotSize = 0.001;
   priceRangePercentage = 0.0017;
   priceMovePercentage = 0.00015;
   lotSize = defaultLotSize;
@@ -260,7 +260,7 @@ void OnTick()
    {
    buyPrice = currentPrice;
    sellPrice = currentPrice - (currentPrice * priceRangePercentage);
-   trade.Buy(defaultLotSize,NULL,Ask,(0),(0),NULL);
+   trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
    hedgeBuy = true;
   
    
@@ -278,7 +278,8 @@ void OnTick()
    {
    sellPrice = currentPrice;
    buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
-   trade.Sell(defaultLotSize,NULL,Ask,(0),(0),NULL);
+   trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   
    
    // Sell hedge prevention because we are already selling! Important!
    hedgeSell = true;
@@ -306,7 +307,7 @@ void OnTick()
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
    lotSize = lotSize * mult; 
-   trade.Sell(lotSize,NULL,Ask,(0),(0),NULL);
+   trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
    if((numSidesTested % 2) == 0)
    {
    //sellPrice = sellPrice - (sellPrice * priceMovePercentage);
@@ -325,7 +326,7 @@ void OnTick()
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
    lotSize = lotSize * mult;   
-   trade.Buy(lotSize,NULL,Ask,(0),(0),NULL);
+   trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
    if((numSidesTested % 2) == 0)
    {
    //buyPrice = buyPrice - (buyPrice * priceMovePercentage);
