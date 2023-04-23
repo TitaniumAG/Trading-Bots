@@ -1,0 +1,228 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using cAlgo.API;
+using cAlgo.API.Collections;
+using cAlgo.API.Indicators;
+using cAlgo.API.Internals;
+
+namespace cAlgo.Robots
+{
+    [Robot(AccessRights = AccessRights.None)]
+    public class TitaniumAGBot : Robot
+    {
+        [Parameter(DefaultValue = "Hello world!")]
+        public string Message { get; set; }
+        public Symbol symbol;
+
+
+        [Parameter("Quantity (Lots)", Group = "Volume", DefaultValue = 0.01, MinValue = 0.01, Step = 0.01)]
+        public double Quantity { get; set; }
+
+        [Parameter("Source", Group = "RSI")]
+        public DataSeries Source { get; set; }
+
+        [Parameter("Periods", Group = "RSI", DefaultValue = 14)]
+        public int Periods { get; set; }
+
+        private RelativeStrengthIndex rsi;
+        private CommodityChannelIndex cci;
+        private IchimokuKinkoHyo ichimoku;
+        
+        public double currentPrice;
+        public double rsiValue;
+        public double cciValue;
+        public double debt;
+        public double interest;
+        public double acceptedSpanWidth; 
+        public double mult;
+        public double maxAllowedDist;
+        public double buyPrice;
+        public double sellPrice;
+        public double PL;
+        public double lastPL;
+        public bool hedgeBuy;
+        public bool hedgeSell;
+        public double defaultLotSize;
+        public double priceRangePercentage;
+        public double priceMovePercentage;
+        public double lotSize;
+        public bool tradeStarted;
+        public double awaitEntry;
+        public double numSidesTested;
+        
+        
+        
+        private void Close(TradeType tradeType)
+        {
+            foreach (var position in Positions.FindAll("BotTrade", SymbolName, tradeType))
+                ClosePosition(position);
+        }
+
+        private void Open(TradeType tradeType)
+        {
+            var position = Positions.Find("BotTrade", SymbolName, tradeType);
+            var volumeInUnits = Symbol.QuantityToVolumeInUnits(lotSize);
+
+            if (position == null)
+                ExecuteMarketOrder(tradeType, SymbolName, volumeInUnits, "BotTrade");
+        }
+       
+
+
+
+        protected override void OnStart()
+        {
+            // Set initial values
+            rsi = Indicators.RelativeStrengthIndex(Source, Periods);
+            cci = Indicators.CommodityChannelIndex(14);
+            ichimoku = Indicators.IchimokuKinkoHyo(9, 26, 52);
+            symbol = Symbol;
+            debt = 0;
+            interest = 5;
+            acceptedSpanWidth = 1; 
+            mult = 3;
+            maxAllowedDist = 20;
+            currentPrice = 0;
+            buyPrice = 0;
+            sellPrice = 0;
+            PL = 0;
+            lastPL = 0;
+            hedgeBuy = false;
+            hedgeSell = false;
+            defaultLotSize = 0.001;
+            priceRangePercentage = 0.0017;
+            priceMovePercentage = 0.00015;
+            lotSize = defaultLotSize;
+            tradeStarted = false;
+            awaitEntry = 0;
+            numSidesTested = 0;
+            
+        }
+
+        protected override void OnTick()
+        {
+            
+            // Set price data values
+            currentPrice = symbol.Bid;
+            PL = Account.Equity;
+            
+            // Set indicator values
+            double chikouSpanValue = ichimoku.ChikouSpan.Last(1);
+            double spanAValue = ichimoku.SenkouSpanA.Last(1);
+            double spanBValue = ichimoku.SenkouSpanB.Last(1);
+            double rsiValue = rsi.Result.LastValue;
+            double cciValue = cci.Result.Last(1);
+            
+            // calculate average of span A & B
+            double spanAvg = Math.Abs((spanAValue + spanBValue) / 2);
+            double spanHigh = spanAvg + maxAllowedDist;
+            double spanLow = spanAvg - maxAllowedDist;
+            
+            
+            // Initial Buy trade; oversold conditions where sentiment is to buy up
+            if (rsiValue < 31 && cciValue < - 100 && chikouSpanValue < spanLow && awaitEntry < 1)
+            {
+            if(!tradeStarted)
+            {
+            buyPrice = currentPrice;
+            sellPrice = currentPrice - (currentPrice * priceRangePercentage);
+            // Open buy position here
+            Open(TradeType.Buy);
+            
+            // Buy hedge prevention because we are already Buying! Important!
+            hedgeBuy = true;
+            tradeStarted = true;
+            }
+            }////////////////////
+            
+            
+            // Initial Sell trade; overbought conditions where sentiment is to sell down
+            if (rsiValue > 70 && cciValue > 100 && chikouSpanValue > spanHigh && awaitEntry < 1)
+            {
+            if(!tradeStarted)
+            {
+            sellPrice = currentPrice;
+            buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
+            // Open sell position here
+            Open(TradeType.Sell);
+            
+            // Sell hedge prevention because we are already selling! Important!
+            hedgeSell = true;
+            tradeStarted = true;
+            }
+            }///////////////
+            
+            
+            
+            ////////////////////////////////////
+            // starting the hedge trades
+            
+            if(currentPrice < sellPrice && tradeStarted)
+            {
+            if(!hedgeSell)
+            {
+            numSidesTested++;
+            lastPL = lastPL + PL;
+            // Close all positions
+            Close(TradeType.Sell);
+            Close(TradeType.Buy);
+            lotSize = lotSize * mult; 
+            // Open sell position
+            Open(TradeType.Sell);
+            hedgeBuy = false;
+            hedgeSell = true;
+            }   
+            }
+            
+            if(currentPrice > buyPrice && tradeStarted)
+            {
+            if(!hedgeBuy)
+            {
+            numSidesTested++;
+            lastPL = lastPL + PL;
+            // Close all positions
+            Close(TradeType.Sell);
+            Close(TradeType.Buy);
+            lotSize = lotSize * mult;   
+            // Open buy position
+            Open(TradeType.Buy);
+            hedgeSell = false;
+            hedgeBuy = true;
+            }   
+            }//////////////
+            
+            
+            
+            
+            // locking profit
+            debt = Math.Abs(lastPL);
+            if(PL > debt + interest) //(debt + interest)
+            {
+            // close all postiions
+            Close(TradeType.Sell);
+            Close(TradeType.Buy);
+            buyPrice = 0;
+            sellPrice = 0;
+            tradeStarted = false;
+            hedgeBuy = false;
+            hedgeSell = false;
+            lastPL = 0;
+            lotSize = defaultLotSize;
+            debt = 0;
+            numSidesTested = 0;
+            awaitEntry = 2000;
+            }
+            if (awaitEntry > 0)
+            {
+            awaitEntry--;
+            }
+            }
+
+        protected override void OnStop()
+        {
+            // Handle cBot stop here 
+        }
+    }
+}
