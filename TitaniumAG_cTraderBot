@@ -12,8 +12,7 @@ namespace cAlgo.Robots
     [Robot(AccessRights = AccessRights.None)]
     public class TitaniumAGBot : Robot
     {
-        [Parameter(DefaultValue = "Hello world!")]
-        public string Message { get; set; }
+        
         public Symbol symbol;
 
 
@@ -83,7 +82,7 @@ namespace cAlgo.Robots
             interest = 5;
             acceptedSpanWidth = 1; 
             mult = 3;
-            maxAllowedDist = 20;
+            maxAllowedDist = 2;
             currentPrice = 0;
             buyPrice = 0;
             sellPrice = 0;
@@ -102,11 +101,12 @@ namespace cAlgo.Robots
         }
 
         protected override void OnTick()
-        {
+        { 
             
             // Set price data values
             currentPrice = symbol.Bid;
-            PL = Account.Equity;
+            PL = (Account.Equity - Account.Balance);
+            
             
             // Set indicator values
             double chikouSpanValue = ichimoku.ChikouSpan.Last(1);
@@ -120,12 +120,17 @@ namespace cAlgo.Robots
             double spanHigh = spanAvg + maxAllowedDist;
             double spanLow = spanAvg - maxAllowedDist;
             
+            if (rsiValue < 31 && cciValue < - 100 && chikouSpanValue < spanLow && awaitEntry < 1)
+            {
+            Print("trying to buy");
+            }
+            
             
             // Initial Buy trade; oversold conditions where sentiment is to buy up
             if (rsiValue < 31 && cciValue < - 100 && chikouSpanValue < spanLow && awaitEntry < 1)
             {
             if(!tradeStarted)
-            {
+            { Print("Trying to buy!");
             buyPrice = currentPrice;
             sellPrice = currentPrice - (currentPrice * priceRangePercentage);
             // Open buy position here
@@ -142,7 +147,7 @@ namespace cAlgo.Robots
             if (rsiValue > 70 && cciValue > 100 && chikouSpanValue > spanHigh && awaitEntry < 1)
             {
             if(!tradeStarted)
-            {
+            { Print("Trying to sell!");
             sellPrice = currentPrice;
             buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
             // Open sell position here
@@ -218,6 +223,14 @@ namespace cAlgo.Robots
             {
             awaitEntry--;
             }
+            
+            
+            
+            // Output prints 
+            
+            
+            
+            
             }
 
         protected override void OnStop()
