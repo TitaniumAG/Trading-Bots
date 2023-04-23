@@ -120,11 +120,6 @@ namespace cAlgo.Robots
             double spanHigh = spanAvg + maxAllowedDist;
             double spanLow = spanAvg - maxAllowedDist;
             
-            if (rsiValue < 31 && cciValue < - 100 && chikouSpanValue < spanLow && awaitEntry < 1)
-            {
-            Print("trying to buy");
-            }
-            
             
             // Initial Buy trade; oversold conditions where sentiment is to buy up
             if (rsiValue < 31 && cciValue < - 100 && chikouSpanValue < spanLow && awaitEntry < 1)
