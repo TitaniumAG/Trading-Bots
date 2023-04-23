@@ -90,7 +90,7 @@ namespace cAlgo.Robots
             lastPL = 0;
             hedgeBuy = false;
             hedgeSell = false;
-            defaultLotSize = 0.001;
+            defaultLotSize = 0.01;
             priceRangePercentage = 0.0017;
             priceMovePercentage = 0.00015;
             lotSize = defaultLotSize;
