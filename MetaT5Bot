@@ -148,14 +148,14 @@ int OnInit()
   interest = 5;
   acceptedSpanWidth = 1; 
   mult = 3;
-  maxAllowedDist = 200;
+  maxAllowedDist = 0.015;
   currentPrice = 0;
   buyPrice = 0;
   sellPrice = 0;
   lastPL = 0;
   hedgeBuy = false;
   hedgeSell = false;
-  defaultLotSize = 0.01;
+  defaultLotSize = 0.001;
   priceRangePercentage = 0.0017;
   priceMovePercentage = 0.00015;
   lotSize = defaultLotSize;
@@ -247,8 +247,8 @@ void OnTick()
 
 
   spanAverage = MathAbs((mySpanAValue + mySpanBValue) / 2);  
-  spanHigh = spanAverage + maxAllowedDist;
-  spanLow = spanAverage - maxAllowedDist;
+  spanHigh = spanAverage + (spanAverage * maxAllowedDist);
+  spanLow = spanAverage - (spanAverage * maxAllowedDist);
   spanWidth = MathAbs(mySpanAValue - mySpanBValue);
   
   
