@@ -53,7 +53,7 @@ namespace cAlgo.Robots
         public bool hedgeBuy;
         public bool hedgeSell;
         public double defaultLotSize;
-        public double priceRangePercentage;
+        public double priceRange;
         public double priceMovePercentage;
         public double lotSize;
         public bool tradeStarted;
@@ -106,14 +106,14 @@ namespace cAlgo.Robots
             hedgeBuy = false;
             hedgeSell = false;
             defaultLotSize = 0.01;
-            maxAllowedDist = 0.0017;
-            priceRangePercentage = 0.015;
+            maxAllowedDist = 100;
+            priceRange = 50;
             priceMovePercentage = 0.00015;
             lotSize = defaultLotSize;
             tradeStarted = false;
             awaitEntry = 0;
             numSidesTested = 0;
-            freqDelay = 2.0;
+            freqDelay = 2000.0;
             numIncreaseLots = 0;
             mult = 3;
             lotStepLimit = 10;
@@ -138,8 +138,8 @@ namespace cAlgo.Robots
             
             // calculate average of span A & B
             double spanAvg = Math.Abs((spanAValue + spanBValue) / 2);
-            double spanHigh = spanAvg + (spanAvg * maxAllowedDist);
-            double spanLow = spanAvg - (spanAvg * maxAllowedDist);
+            double spanHigh = spanAvg + maxAllowedDist;
+            double spanLow = spanAvg - maxAllowedDist;
             
             
             // Initial Buy trade; oversold conditions where sentiment is to buy up
@@ -148,7 +148,7 @@ namespace cAlgo.Robots
             if(!tradeStarted)
             {
             buyPrice = currentPrice;
-            sellPrice = currentPrice - (currentPrice * priceRangePercentage);
+            sellPrice = currentPrice - priceRange;
             // Open buy position here
             Open(TradeType.Buy, "initial");
             
@@ -165,7 +165,7 @@ namespace cAlgo.Robots
             if(!tradeStarted)
             { 
             sellPrice = currentPrice;
-            buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
+            buyPrice = currentPrice + priceRange;   
             // Open sell position here
             Open(TradeType.Sell, "initial");
             
