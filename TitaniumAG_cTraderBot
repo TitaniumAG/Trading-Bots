@@ -30,6 +30,9 @@ namespace cAlgo.Robots
 
         [Parameter("Periods", Group = "RSI", DefaultValue = 14)]
         public int Periods { get; set; }
+        
+      
+       
 
         private RelativeStrengthIndex rsi;
         private CommodityChannelIndex cci;
@@ -62,24 +65,29 @@ namespace cAlgo.Robots
         
         private void Close(TradeType tradeType)
         {
-            foreach (var position in Positions.FindAll("BotTrade", SymbolName, tradeType))
+            foreach (var position in Positions.FindAll("initial", SymbolName, tradeType))
+                ClosePosition(position);
+            foreach (var position in Positions.FindAll("hedge", SymbolName, tradeType))
                 ClosePosition(position);
         }
 
-        private void Open(TradeType tradeType)
+        private void Open(TradeType tradeType, string label)
         {
             var position = Positions.Find("BotTrade", SymbolName, tradeType);
             var volumeInUnits = Symbol.QuantityToVolumeInUnits(lotSize);
 
             if (position == null)
-                ExecuteMarketOrder(tradeType, SymbolName, volumeInUnits, "BotTrade");
+                ExecuteMarketOrder(tradeType, SymbolName, volumeInUnits, label);
         }
+        
+        
+        
        
 
 
 
         protected override void OnStart()
-        {
+        { 
             // Set initial values
             rsi = Indicators.RelativeStrengthIndex(Source, Periods);
             cci = Indicators.CommodityChannelIndex(14);
@@ -97,14 +105,14 @@ namespace cAlgo.Robots
             hedgeBuy = false;
             hedgeSell = false;
             defaultLotSize = 0.01;
-            maxAllowedDist = 100;
-            priceRangePercentage = 0.0017;
+            maxAllowedDist = 20;
+            priceRangePercentage = 0.0019;
             priceMovePercentage = 0.00015;
             lotSize = defaultLotSize;
             tradeStarted = false;
             awaitEntry = 0;
             numSidesTested = 0;
-            freqDelay = 2000.0;
+            freqDelay = 2.0;
             
         }
 
@@ -116,8 +124,9 @@ namespace cAlgo.Robots
             PL = (Account.Equity - Account.Balance);
             
             
+            
             // Set indicator values
-            double chikouSpanValue = ichimoku.ChikouSpan.Last(1);
+            double TenkansenValue = ichimoku.TenkanSen.Last(1);
             double spanAValue = ichimoku.SenkouSpanA.Last(1);
             double spanBValue = ichimoku.SenkouSpanB.Last(1);
             double rsiValue = rsi.Result.LastValue;
@@ -130,14 +139,14 @@ namespace cAlgo.Robots
             
             
             // Initial Buy trade; oversold conditions where sentiment is to buy up
-            if (rsiValue < 31 && cciValue < - 100 && chikouSpanValue < spanLow && awaitEntry < 1)
+            if (rsiValue < 31 && cciValue < - 100 && TenkansenValue < spanLow && awaitEntry < 1)
             {
             if(!tradeStarted)
             {
             buyPrice = currentPrice;
             sellPrice = currentPrice - (currentPrice * priceRangePercentage);
             // Open buy position here
-            Open(TradeType.Buy);
+            Open(TradeType.Buy, "initial");
             
             // Buy hedge prevention because we are already Buying! Important!
             hedgeBuy = true;
@@ -147,14 +156,14 @@ namespace cAlgo.Robots
             
             
             // Initial Sell trade; overbought conditions where sentiment is to sell down
-            if (rsiValue > 70 && cciValue > 100 && chikouSpanValue > spanHigh && awaitEntry < 1)
+            if (rsiValue > 70 && cciValue > 100 && TenkansenValue > spanHigh && awaitEntry < 1)
             {
             if(!tradeStarted)
             { 
             sellPrice = currentPrice;
             buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
             // Open sell position here
-            Open(TradeType.Sell);
+            Open(TradeType.Sell, "initial");
             
             // Sell hedge prevention because we are already selling! Important!
             hedgeSell = true;
@@ -176,9 +185,9 @@ namespace cAlgo.Robots
             // Close all positions
             Close(TradeType.Sell);
             Close(TradeType.Buy);
-            lotSize = lotSize * mult; 
+            lotSize  = lotSize * mult; 
             // Open sell position
-            Open(TradeType.Sell);
+            Open(TradeType.Sell, "hedge");
             hedgeBuy = false;
             hedgeSell = true;
             }   
@@ -193,9 +202,9 @@ namespace cAlgo.Robots
             // Close all positions
             Close(TradeType.Sell);
             Close(TradeType.Buy);
-            lotSize = lotSize * mult;   
+            lotSize  = lotSize * mult; 
             // Open buy position
-            Open(TradeType.Buy);
+            Open(TradeType.Buy, "hedge");
             hedgeSell = false;
             hedgeBuy = true;
             }   
@@ -231,8 +240,9 @@ namespace cAlgo.Robots
             
             // Output prints 
             
+            Chart.DrawStaticText("Data", awaitEntry.ToString("F"),0,0,Color.AliceBlue);
             
-            
+          
             
             }
 
