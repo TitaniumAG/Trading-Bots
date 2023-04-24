@@ -159,8 +159,8 @@ int OnInit()
   hedgeSell = false;
   defaultLotSize = 0.001;
   freqDelay = 2000;
-  maxAllowedDist = 1000;
-  priceRange = 200;
+  maxAllowedDist = 1880;
+  priceRange = 306;
   priceMovePercentage = 0.000170;
   lotSize = defaultLotSize;
   tradeStarted = false;
