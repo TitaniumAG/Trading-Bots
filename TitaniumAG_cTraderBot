@@ -60,6 +60,8 @@ namespace cAlgo.Robots
         public double awaitEntry;
         public double numSidesTested;
         public double freqDelay;
+        public double numIncreaseLots;
+        public double lotStepLimit;
         
         
         
@@ -106,13 +108,15 @@ namespace cAlgo.Robots
             hedgeSell = false;
             defaultLotSize = 0.01;
             maxAllowedDist = 20;
-            priceRangePercentage = 0.0019;
+            priceRangePercentage = 0.0017;
             priceMovePercentage = 0.00015;
             lotSize = defaultLotSize;
             tradeStarted = false;
             awaitEntry = 0;
             numSidesTested = 0;
             freqDelay = 2.0;
+            numIncreaseLots = 0;
+            lotStepLimit = 5;
             
         }
 
@@ -181,11 +185,15 @@ namespace cAlgo.Robots
             if(!hedgeSell)
             {
             numSidesTested++;
+            numIncreaseLots++;
             lastPL = lastPL + PL;
             // Close all positions
             Close(TradeType.Sell);
             Close(TradeType.Buy);
+            if(numIncreaseLots < lotStepLimit)
+            {
             lotSize  = lotSize * mult; 
+            }  
             // Open sell position
             Open(TradeType.Sell, "hedge");
             hedgeBuy = false;
@@ -198,11 +206,15 @@ namespace cAlgo.Robots
             if(!hedgeBuy)
             {
             numSidesTested++;
+            numIncreaseLots++;
             lastPL = lastPL + PL;
             // Close all positions
             Close(TradeType.Sell);
             Close(TradeType.Buy);
+            if(numIncreaseLots < lotStepLimit)
+            {
             lotSize  = lotSize * mult; 
+            }            
             // Open buy position
             Open(TradeType.Buy, "hedge");
             hedgeSell = false;
@@ -230,6 +242,7 @@ namespace cAlgo.Robots
             debt = 0;
             numSidesTested = 0;
             awaitEntry = freqDelay;
+            numIncreaseLots = 0;
             }
             if (awaitEntry > 0)
             {
