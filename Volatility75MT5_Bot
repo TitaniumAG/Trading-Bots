@@ -1,0 +1,418 @@
+// MetaT5Bot ////////////////////////////////////////////////////////////////////
+// Smartbot TitaniumAG -  Luke Jeffers - 2023 - All rights reserved           // 
+///////////////////////////////////////////////////////////////////////////////
+
+// This robot is still under heavy development and may not produce the results you expect. 
+
+
+// create an instance of ctrade
+#include <Trade\trade.mqh>
+CTrade trade;
+
+bool userAlerted;
+string Action;
+int tickTradeDuration;
+bool tradeStarted;
+int awaitEntry;
+int waitTime;
+int entryThreshold;
+int tradeLevel;
+int waitTradeTime;
+int numOfTradesOpen;
+bool inTradeBuy;
+bool inTradeSell;
+bool inTrade2;
+int checkCycle;
+bool counterTrade;
+double maxAllowedDist;
+double lastBalance;
+MqlRates PriceInfo[];
+double spanAverage;
+double spanLow;
+double spanHigh;
+double maxRiskAmt;
+double coolDownPeriod;
+double trendingDuration;
+bool isHedgeTradeSell;
+bool isHedgeTradeBuy;
+double spanWidth;
+double acceptedSpanWidth;
+string tradeStatus;
+double interest;
+double currentPrice;
+double debt;
+double buyPrice;
+double sellPrice;
+double mult;
+double lastPL;
+bool hedgeBuy;
+bool hedgeSell;
+bool pendingSellSet;
+double priceRange;
+double priceMovePercentage;
+int numSidesTested;
+double defaultLotSize;
+double lotSize;
+double maxTrendingDuration;
+double tradingFrequency;
+double lotSizeHedging;
+
+double myTenkanSenValue;
+
+bool p1Set;
+bool p2Set;
+bool p3Set;
+double p1;
+double p2;
+double p3;
+double pStep;
+string tradeBias;
+bool biasSellSet;
+bool biasBuySet;
+
+double numIncreaseLots;
+double lotStepLimit;
+int freqDelay;
+double profitCount;
+double takeProfit;
+/*
+void OpenBuyOrder()
+   {
+   
+   double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
+   double Equity=AccountInfoDouble(ACCOUNT_EQUITY);
+   double Balance=AccountInfoDouble(ACCOUNT_BALANCE);
+   
+   MqlTradeRequest myrequest;
+   MqlTradeResult myresult;
+   ZeroMemory(myrequest);
+   
+   
+   myrequest.action=TRADE_ACTION_DEAL;
+   myrequest.type=ORDER_TYPE_BUY;
+   myrequest.symbol=_Symbol;
+   myrequest.volume=0.03;
+   myrequest.type_filling=ORDER_FILLING_FOK;
+   myrequest.price=SymbolInfoDouble(_Symbol,SYMBOL_ASK);
+   myrequest.tp=309;
+   myrequest.sl=0;
+   myrequest.deviation=50;
+   OrderSend(myrequest,myresult);
+      
+   
+   }
+*/
+
+
+
+
+
+
+int OnInit()
+  {
+  userAlerted = false;
+  Action = "";
+  tickTradeDuration = 0;
+  tradeStarted = false;
+
+ 
+  awaitEntry = 0;
+  waitTime = 1;
+  entryThreshold = 20;
+  tradeLevel = 0;
+  waitTradeTime = 0;
+  numOfTradesOpen = 0;
+  inTradeBuy = false;
+  inTradeSell = false;
+  inTrade2 = false;  
+  spanAverage = 0;
+  spanLow = 0;
+  spanHigh = 0;
+  checkCycle = 0;
+  counterTrade = false;
+  lotSizeHedging = 0.01;
+  lastBalance = 0;
+  maxRiskAmt = 300;
+  
+  trendingDuration = 0;
+  isHedgeTradeSell = false;
+  isHedgeTradeBuy = false;
+  spanWidth = 0;
+  tradeStatus = "null";
+  p1Set = false;
+  p2Set = false; 
+  p3Set = false;
+  p1 = 0;
+  p2 = 0;
+  p3 = 0;
+  pStep = 0;
+  
+  debt = 0;
+  interest = 10;
+  acceptedSpanWidth = 1; 
+  mult = 2;
+  currentPrice = 0;
+  buyPrice = 0;
+  sellPrice = 0;
+  lastPL = 0;
+  hedgeBuy = false;
+  hedgeSell = false;
+  defaultLotSize = 0.001;
+  freqDelay = 2000;
+  maxAllowedDist = 1000;
+  priceRange = 200;
+  priceMovePercentage = 0.000170;
+  lotSize = defaultLotSize;
+  tradeStarted = false;
+  pendingSellSet = false;
+  numSidesTested = 0;
+  lotStepLimit = 7;
+  profitCount = 0;
+  takeProfit = 2500;  
+  
+  
+  return(INIT_SUCCEEDED);
+  
+  }
+
+ 
+
+
+void OnTick()
+  {
+  
+  // set current price
+  currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+  double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
+  double Equity=AccountInfoDouble(ACCOUNT_EQUITY);
+  double Balance=AccountInfoDouble(ACCOUNT_BALANCE);
+  double PL = (Equity - Balance);  
+  
+  
+  // we calculate the ask price 
+  //double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK,_Digits);
+  
+  // we calculate the bid price
+  //double Bid=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_BID,_Digits);
+  
+  
+  // create array for the price data
+  double myRSIArray[];
+  double myCCIArray[];
+  double mySpanAArray[];
+  double mySpanBArray[];
+  double myTenkanSenArray[];
+  double macd_array[];
+  double macd_buffer[];
+  double signal_buffer[];
+  int ma_fast_period = 12;
+  int ma_slow_period = 26;
+  int ma_signal_period = 9;
+  
+  
+  
+  // Sort it from current candle to oldest candle 
+  ArraySetAsSeries(PriceInfo, true);
+   
+  
+  
+  int myRSIDefinition=iRSI(_Symbol, _Period,14,PRICE_CLOSE);
+  int myCCIDefinition=iCCI(_Symbol, _Period,14,PRICE_CLOSE);
+  int myIchimokuDefinition=iIchimoku(_Symbol, _Period,9,26,52);
+  
+  
+  
+  // sort the price data from the current candle downwards 
+  ArraySetAsSeries(myRSIArray,true);
+  ArraySetAsSeries(myCCIArray,true);
+  ArraySetAsSeries(mySpanAArray,true);
+  ArraySetAsSeries(mySpanBArray,true);
+  ArraySetAsSeries(myTenkanSenArray,true);
+  
+  
+  
+  
+  // defined ea, from current candle, for 3 candles, save in array
+  CopyBuffer(myRSIDefinition,0,0,3,myRSIArray);
+  CopyBuffer(myCCIDefinition,0,0,3,myCCIArray);
+  CopyBuffer(myIchimokuDefinition,2,0,3,mySpanAArray);
+  CopyBuffer(myIchimokuDefinition,3,0,3,mySpanBArray);
+  CopyBuffer(myIchimokuDefinition,0,0,3,myTenkanSenArray);
+  
+  
+  
+  // calculate the current rsi & cci values
+  double myRSIValue=NormalizeDouble(myRSIArray[0],2);
+  double myCCIValue=NormalizeDouble(myCCIArray[0],2);
+  double mySpanAValue=mySpanAArray[0];
+  double mySpanBValue=mySpanBArray[0];
+  myTenkanSenValue=myTenkanSenArray[0];
+  //macd_handle = iMA(_Symbol, 0, ma_fast_period, 0, MODE_EMA, PRICE_CLOSE) - iMA(_Symbol, 0, ma_slow_period, 0, MODE_EMA, PRICE_CLOSE);
+ 
+
+
+  spanAverage = MathAbs((mySpanAValue + mySpanBValue) / 2);  
+  spanHigh = spanAverage + maxAllowedDist;
+  spanLow = spanAverage - maxAllowedDist;
+  spanWidth = MathAbs(mySpanAValue - mySpanBValue);
+  
+  
+ 
+ if(profitCount < takeProfit)
+ {
+  
+  // Initial Buy trade; oversold conditions where sentiment is to buy up
+  //if (myRSIValue < 31 && myCCIValue < -100)
+  if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
+  {
+  if(!tradeStarted)
+   {
+   buyPrice = currentPrice;
+   sellPrice = currentPrice - priceRange;
+   trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   // Buy hedge prevention because we are already selling! Important!
+   hedgeBuy = true;
+  
+   
+   tradeStarted = true;
+   }
+  }
+  ///////////////
+  
+  
+  // Initial Sell trade; overbought conditions where sentiment is to sell down
+  //if (myRSIValue < 31 && myCCIValue < -100)
+  if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
+  {
+  if(!tradeStarted)
+   {
+   sellPrice = currentPrice;
+   buyPrice = currentPrice + priceRange;   
+   trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   
+   
+   // Sell hedge prevention because we are already selling! Important!
+   hedgeSell = true;
+   
+   
+   tradeStarted = true;
+   }
+  }
+  ///////////////
+  
+  }
+  
+  
+  
+  
+  
+  ////////////////////////////////////
+  // starting the hedge trades
+  
+   if(currentPrice < sellPrice && tradeStarted)
+   {
+   if(!hedgeSell)
+   {
+   numSidesTested++;
+   numIncreaseLots++;
+   lastPL = lastPL + PL;
+   trade.PositionClose(Symbol());
+   if(numIncreaseLots < lotStepLimit)
+   {
+   lotSize  = lotSize * mult; 
+   }         
+   trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   if((numSidesTested % 2) == 0)
+   {
+   //sellPrice = sellPrice - (sellPrice * priceMovePercentage);
+   }  
+   hedgeBuy = false;
+   hedgeSell = true;
+   }   
+   }
+   
+   
+   if(currentPrice > buyPrice && tradeStarted)
+   {
+   if(!hedgeBuy)
+   {
+   numSidesTested++;
+   numIncreaseLots++;
+   lastPL = lastPL + PL;
+   trade.PositionClose(Symbol());
+   if(numIncreaseLots < lotStepLimit)
+   {
+   lotSize  = lotSize * mult; 
+   }    
+   trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   if((numSidesTested % 2) == 0)
+   {
+   //buyPrice = buyPrice - (buyPrice * priceMovePercentage);
+   }
+   hedgeSell = false;
+   hedgeBuy = true;
+   }   
+   }   
+   
+  // locking profit
+  debt = MathAbs(lastPL);
+  if(PL > debt + interest) //(debt + interest)
+  {
+  trade.PositionClose(Symbol());
+  buyPrice = 0;
+  sellPrice = 0;
+  tradeStarted = false;
+  hedgeBuy = false;
+  hedgeSell = false;
+  lastPL = 0;
+  lotSize = defaultLotSize;
+  pendingSellSet = false;
+  debt = 0;
+  numSidesTested = 0;
+  awaitEntry = freqDelay;
+  numIncreaseLots = 0;
+  profitCount = profitCount + interest;
+  }
+  
+  
+  
+  if (awaitEntry > 0)
+  {
+  awaitEntry--;
+  }
+  
+  
+  
+  
+  ////////////////////////////////////
+  
+ //print values to screen  
+ string myString;
+
+// Convert bool to string
+if (hedgeSell) {
+    myString = "true";
+} else {
+    myString = "false";
+}
+
+   
+    string text=  
+               "P&L  | "+DoubleToString(PL,Digits()+1) + "\n"+
+               "Current  | "+DoubleToString(currentPrice,Digits()+1) + "\n"+
+               "Buy price  | "+DoubleToString(buyPrice,Digits()+1) + "\n"+
+               "Sell price  | "+DoubleToString(sellPrice,Digits()+1) + "\n"+
+               "Buy  | "+DoubleToString(buyPrice,Digits()+1) + "\n"+
+               "Sell  | "+DoubleToString(sellPrice,Digits()+1) + "\n"+
+               "Hedge sell  | "+ myString + "\n"+
+               "Hedge buy  | "+ myString + "\n"+
+               "Debt  | "+DoubleToString(debt,Digits()+1) + "\n"+
+               "RSI  | "+DoubleToString(myRSIValue,Digits()+1) + "\n"+
+               "CCI  | "+DoubleToString(myCCIValue,Digits()+1) + "\n"+
+               "Wait  | "+DoubleToString(awaitEntry,Digits()+1) + "\n"+
+               "Balance  | "+DoubleToString(Balance,Digits()+1);
+               
+   Comment(text);
+  
+  
+ }
