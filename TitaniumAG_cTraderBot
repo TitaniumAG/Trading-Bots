@@ -98,7 +98,6 @@ namespace cAlgo.Robots
             debt = 0;
             interest = 5;
             acceptedSpanWidth = 1; 
-            mult = 3;
             currentPrice = 0;
             buyPrice = 0;
             sellPrice = 0;
@@ -107,8 +106,8 @@ namespace cAlgo.Robots
             hedgeBuy = false;
             hedgeSell = false;
             defaultLotSize = 0.01;
-            maxAllowedDist = 20;
-            priceRangePercentage = 0.0017;
+            maxAllowedDist = 0.0017;
+            priceRangePercentage = 0.015;
             priceMovePercentage = 0.00015;
             lotSize = defaultLotSize;
             tradeStarted = false;
@@ -116,7 +115,8 @@ namespace cAlgo.Robots
             numSidesTested = 0;
             freqDelay = 2.0;
             numIncreaseLots = 0;
-            lotStepLimit = 5;
+            mult = 3;
+            lotStepLimit = 10;
             
         }
 
@@ -138,8 +138,8 @@ namespace cAlgo.Robots
             
             // calculate average of span A & B
             double spanAvg = Math.Abs((spanAValue + spanBValue) / 2);
-            double spanHigh = spanAvg + maxAllowedDist;
-            double spanLow = spanAvg - maxAllowedDist;
+            double spanHigh = spanAvg + (spanAvg * maxAllowedDist);
+            double spanLow = spanAvg - (spanAvg * maxAllowedDist);
             
             
             // Initial Buy trade; oversold conditions where sentiment is to buy up
