@@ -7,6 +7,12 @@ using cAlgo.API.Collections;
 using cAlgo.API.Indicators;
 using cAlgo.API.Internals;
 
+
+// TitaniumAG5Bot ////////////////////////////////////////////////////////////////////
+// Smartbot TitaniumAG -  Luke Jeffers - 2023 - All rights reserved                // 
+////////////////////////////////////////////////////////////////////////////////////
+
+
 namespace cAlgo.Robots
 {
     [Robot(AccessRights = AccessRights.None)]
@@ -50,6 +56,7 @@ namespace cAlgo.Robots
         public bool tradeStarted;
         public double awaitEntry;
         public double numSidesTested;
+        public double freqDelay;
         
         
         
@@ -82,7 +89,6 @@ namespace cAlgo.Robots
             interest = 5;
             acceptedSpanWidth = 1; 
             mult = 3;
-            maxAllowedDist = 2;
             currentPrice = 0;
             buyPrice = 0;
             sellPrice = 0;
@@ -91,12 +97,14 @@ namespace cAlgo.Robots
             hedgeBuy = false;
             hedgeSell = false;
             defaultLotSize = 0.01;
+            maxAllowedDist = 100;
             priceRangePercentage = 0.0017;
             priceMovePercentage = 0.00015;
             lotSize = defaultLotSize;
             tradeStarted = false;
             awaitEntry = 0;
             numSidesTested = 0;
+            freqDelay = 2000.0;
             
         }
 
@@ -125,7 +133,7 @@ namespace cAlgo.Robots
             if (rsiValue < 31 && cciValue < - 100 && chikouSpanValue < spanLow && awaitEntry < 1)
             {
             if(!tradeStarted)
-            { Print("Trying to buy!");
+            {
             buyPrice = currentPrice;
             sellPrice = currentPrice - (currentPrice * priceRangePercentage);
             // Open buy position here
@@ -142,7 +150,7 @@ namespace cAlgo.Robots
             if (rsiValue > 70 && cciValue > 100 && chikouSpanValue > spanHigh && awaitEntry < 1)
             {
             if(!tradeStarted)
-            { Print("Trying to sell!");
+            { 
             sellPrice = currentPrice;
             buyPrice = currentPrice + (currentPrice * priceRangePercentage);   
             // Open sell position here
@@ -212,7 +220,7 @@ namespace cAlgo.Robots
             lotSize = defaultLotSize;
             debt = 0;
             numSidesTested = 0;
-            awaitEntry = 2000;
+            awaitEntry = freqDelay;
             }
             if (awaitEntry > 0)
             {
