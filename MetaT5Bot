@@ -69,6 +69,9 @@ double pStep;
 string tradeBias;
 bool biasSellSet;
 bool biasBuySet;
+
+double numIncreaseLots;
+double lotStepLimit;
 /*
 void OpenBuyOrder()
    {
@@ -145,7 +148,7 @@ int OnInit()
   interest = 5;
   acceptedSpanWidth = 1; 
   mult = 3;
-  maxAllowedDist = 20;
+  maxAllowedDist = 200;
   currentPrice = 0;
   buyPrice = 0;
   sellPrice = 0;
@@ -159,6 +162,7 @@ int OnInit()
   tradeStarted = false;
   pendingSellSet = false;
   numSidesTested = 0;
+  lotStepLimit = 4;
   
   
   
@@ -304,9 +308,13 @@ void OnTick()
    if(!hedgeSell)
    {
    numSidesTested++;
+   numIncreaseLots++;
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
-   lotSize = lotSize * mult; 
+   if(numIncreaseLots < lotStepLimit)
+   {
+   lotSize  = lotSize * mult; 
+   }         
    trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
    if((numSidesTested % 2) == 0)
    {
@@ -323,9 +331,13 @@ void OnTick()
    if(!hedgeBuy)
    {
    numSidesTested++;
+   numIncreaseLots++;
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
-   lotSize = lotSize * mult;   
+   if(numIncreaseLots < lotStepLimit)
+   {
+   lotSize  = lotSize * mult; 
+   }    
    trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
    if((numSidesTested % 2) == 0)
    {
@@ -352,6 +364,7 @@ void OnTick()
   debt = 0;
   numSidesTested = 0;
   awaitEntry = 2000;
+  numIncreaseLots = 0;
   }
   
   if (awaitEntry > 0)
