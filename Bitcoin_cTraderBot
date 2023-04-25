@@ -111,7 +111,7 @@ namespace cAlgo.Robots
             tradeStarted = false;
             awaitEntry = 0;
             numSidesTested = 0;
-            freqDelay = 0;
+            freqDelay = 1000;
             numIncreaseLots = 0;
             mult = 3;
             lotStepLimit = 20;
@@ -144,7 +144,7 @@ namespace cAlgo.Robots
             
             // Initial Buy trade; oversold conditions where sentiment is to buy up
             // if (rsiValue < 31 && cciValue < - 100 && TenkansenValue < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
-            if (currentPrice < spanLow && rsiValue < 30)
+            if (currentPrice < spanLow && rsiValue < 30 && awaitEntry < 1)
             {
             if(!tradeStarted)
             {
@@ -162,7 +162,7 @@ namespace cAlgo.Robots
             
             // Initial Sell trade; overbought conditions where sentiment is to sell down
             //if (rsiValue > 70 && cciValue > 100 && TenkansenValue > spanHigh && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
-            if (currentPrice > spanHigh && rsiValue > 70)
+            if (currentPrice > spanHigh && rsiValue > 70 && awaitEntry < 1)
             {
             if(!tradeStarted)
             { 
