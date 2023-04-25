@@ -158,10 +158,9 @@ int OnInit()
   hedgeBuy = false;
   hedgeSell = false;
   defaultLotSize = 0.001;
-  freqDelay = 2000;
+  freqDelay = 0;
   maxAllowedDist = 1880;
-  priceRange = 306;
-  priceMovePercentage = 0.000170;
+  priceRange = 90;
   lotSize = defaultLotSize;
   tradeStarted = false;
   pendingSellSet = false;
@@ -262,12 +261,12 @@ void OnTick()
  {
   
   // Initial Buy trade; oversold conditions where sentiment is to buy up
-  //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
+  //if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
+  if (currentPrice < spanLow)
   {
   if(!tradeStarted)
    {
-   buyPrice = currentPrice;
+   buyPrice = spanLow;
    sellPrice = currentPrice - priceRange;
    trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
    // Buy hedge prevention because we are already selling! Important!
@@ -281,12 +280,12 @@ void OnTick()
   
   
   // Initial Sell trade; overbought conditions where sentiment is to sell down
-  //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
+  //if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
+  if (currentPrice > spanHigh)
   {
   if(!tradeStarted)
    {
-   sellPrice = currentPrice;
+   sellPrice = spanHigh;
    buyPrice = currentPrice + priceRange;   
    trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
    
