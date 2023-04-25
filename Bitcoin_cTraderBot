@@ -105,8 +105,8 @@ namespace cAlgo.Robots
             hedgeBuy = false;
             hedgeSell = false;
             defaultLotSize = 0.01;
-            maxAllowedDist = 5;
-            priceRange = 50;
+            maxAllowedDist = 50;
+            priceRange = (maxAllowedDist/2);
             lotSize = defaultLotSize;
             tradeStarted = false;
             awaitEntry = 0;
@@ -144,11 +144,11 @@ namespace cAlgo.Robots
             
             // Initial Buy trade; oversold conditions where sentiment is to buy up
             // if (rsiValue < 31 && cciValue < - 100 && TenkansenValue < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
-            if (currentPrice < spanLow)
+            if (currentPrice < spanLow && rsiValue < 30)
             {
             if(!tradeStarted)
             {
-            buyPrice = spanLow;
+            buyPrice = currentPrice;
             sellPrice = currentPrice - priceRange;
             // Open buy position here
             //Open(TradeType.Buy, "initial");
@@ -162,11 +162,11 @@ namespace cAlgo.Robots
             
             // Initial Sell trade; overbought conditions where sentiment is to sell down
             //if (rsiValue > 70 && cciValue > 100 && TenkansenValue > spanHigh && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
-            if (currentPrice > spanHigh)
+            if (currentPrice > spanHigh && rsiValue > 70)
             {
             if(!tradeStarted)
             { 
-            sellPrice = spanHigh;
+            sellPrice = currentPrice;
             buyPrice = currentPrice + priceRange;   
             // Open sell position here
             //Open(TradeType.Sell, "initial");
