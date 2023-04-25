@@ -133,7 +133,6 @@ int OnInit()
   lotSizeHedging = 0.01;
   lastBalance = 0;
   maxRiskAmt = 300;
-  
   trendingDuration = 0;
   isHedgeTradeSell = false;
   isHedgeTradeBuy = false;
@@ -159,9 +158,8 @@ int OnInit()
   hedgeSell = false;
   defaultLotSize = 0.01;
   freqDelay = 0;
-  maxAllowedDist = 5;
-  priceRange = 50;
-  priceMovePercentage = 0.000170;
+  maxAllowedDist = 200;
+  priceRange = (maxAllowedDist /2);
   lotSize = defaultLotSize;
   tradeStarted = false;
   pendingSellSet = false;
@@ -262,8 +260,8 @@ void OnTick()
  {
   
   // Initial Buy trade; oversold conditions where sentiment is to buy up
-  // if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
-  if (currentPrice < spanLow)
+  //if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
+  if (currentPrice < spanLow && myRSIValue < 30)
   {
   if(!tradeStarted)
    {
@@ -282,7 +280,7 @@ void OnTick()
   
   // Initial Sell trade; overbought conditions where sentiment is to sell down
   //if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
-  if (currentPrice > spanHigh)
+  if (currentPrice > spanHigh && myRSIValue > 70)
   {
   if(!tradeStarted)
    {
@@ -317,14 +315,11 @@ void OnTick()
    numIncreaseLots++;
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
-            
-   trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-   
    if(numIncreaseLots < lotStepLimit)
    {
    lotSize  = lotSize * mult; 
-   }
-   
+   }         
+   trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
    if((numSidesTested % 2) == 0)
    {
    //sellPrice = sellPrice - (sellPrice * priceMovePercentage);
@@ -343,14 +338,11 @@ void OnTick()
    numIncreaseLots++;
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
-   
-   trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-   
    if(numIncreaseLots < lotStepLimit)
    {
    lotSize  = lotSize * mult; 
    }    
-   
+   trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
    if((numSidesTested % 2) == 0)
    {
    //buyPrice = buyPrice - (buyPrice * priceMovePercentage);
