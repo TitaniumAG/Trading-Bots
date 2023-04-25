@@ -157,8 +157,8 @@ int OnInit()
   hedgeBuy = false;
   hedgeSell = false;
   defaultLotSize = 0.01;
-  freqDelay = 0;
-  maxAllowedDist = 200;
+  freqDelay = 2000;
+  maxAllowedDist = 50;
   priceRange = (maxAllowedDist /2);
   lotSize = defaultLotSize;
   tradeStarted = false;
@@ -261,7 +261,7 @@ void OnTick()
   
   // Initial Buy trade; oversold conditions where sentiment is to buy up
   //if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
-  if (currentPrice < spanLow && myRSIValue < 30)
+  if (currentPrice < spanLow && myRSIValue < 30 && awaitEntry < 1)
   {
   if(!tradeStarted)
    {
@@ -280,7 +280,7 @@ void OnTick()
   
   // Initial Sell trade; overbought conditions where sentiment is to sell down
   //if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
-  if (currentPrice > spanHigh && myRSIValue > 70)
+  if (currentPrice > spanHigh && myRSIValue > 70 && awaitEntry < 1)
   {
   if(!tradeStarted)
    {
