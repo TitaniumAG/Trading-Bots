@@ -133,7 +133,6 @@ int OnInit()
   lotSizeHedging = 0.01;
   lastBalance = 0;
   maxRiskAmt = 300;
-  
   trendingDuration = 0;
   isHedgeTradeSell = false;
   isHedgeTradeBuy = false;
@@ -160,7 +159,7 @@ int OnInit()
   defaultLotSize = 0.001;
   freqDelay = 0;
   maxAllowedDist = 1880;
-  priceRange = 90;
+  priceRange = (maxAllowedDist /2);
   lotSize = defaultLotSize;
   tradeStarted = false;
   pendingSellSet = false;
@@ -262,13 +261,13 @@ void OnTick()
   
   // Initial Buy trade; oversold conditions where sentiment is to buy up
   //if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
-  if (currentPrice < spanLow)
+  if (currentPrice < spanLow && myRSIValue < 30)
   {
   if(!tradeStarted)
    {
-   buyPrice = spanLow;
+   buyPrice = currentPrice;
    sellPrice = currentPrice - priceRange;
-   trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   //trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
    // Buy hedge prevention because we are already selling! Important!
    hedgeBuy = true;
   
@@ -281,13 +280,13 @@ void OnTick()
   
   // Initial Sell trade; overbought conditions where sentiment is to sell down
   //if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
-  if (currentPrice > spanHigh)
+  if (currentPrice > spanHigh && myRSIValue > 70)
   {
   if(!tradeStarted)
    {
-   sellPrice = spanHigh;
+   sellPrice = currentPrice;
    buyPrice = currentPrice + priceRange;   
-   trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   //trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
    
    
    // Sell hedge prevention because we are already selling! Important!
@@ -315,7 +314,7 @@ void OnTick()
    numSidesTested++;
    numIncreaseLots++;
    lastPL = lastPL + PL;
-   trade.PositionClose(Symbol());
+   //trade.PositionClose(Symbol());
    if(numIncreaseLots < lotStepLimit)
    {
    lotSize  = lotSize * mult; 
@@ -338,7 +337,7 @@ void OnTick()
    numSidesTested++;
    numIncreaseLots++;
    lastPL = lastPL + PL;
-   trade.PositionClose(Symbol());
+   //trade.PositionClose(Symbol());
    if(numIncreaseLots < lotStepLimit)
    {
    lotSize  = lotSize * mult; 
