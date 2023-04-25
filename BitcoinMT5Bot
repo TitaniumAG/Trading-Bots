@@ -158,8 +158,8 @@ int OnInit()
   hedgeBuy = false;
   hedgeSell = false;
   defaultLotSize = 0.01;
-  freqDelay = 2000;
-  maxAllowedDist = 100;
+  freqDelay = 0;
+  maxAllowedDist = 5;
   priceRange = 50;
   priceMovePercentage = 0.000170;
   lotSize = defaultLotSize;
@@ -262,14 +262,14 @@ void OnTick()
  {
   
   // Initial Buy trade; oversold conditions where sentiment is to buy up
-  //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
+  // if (myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
+  if (currentPrice < spanLow)
   {
   if(!tradeStarted)
    {
    buyPrice = currentPrice;
    sellPrice = currentPrice - priceRange;
-   trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   //trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
    // Buy hedge prevention because we are already selling! Important!
    hedgeBuy = true;
   
@@ -281,14 +281,14 @@ void OnTick()
   
   
   // Initial Sell trade; overbought conditions where sentiment is to sell down
-  //if (myRSIValue < 31 && myCCIValue < -100)
-  if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
+  //if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
+  if (currentPrice > spanHigh)
   {
   if(!tradeStarted)
    {
    sellPrice = currentPrice;
    buyPrice = currentPrice + priceRange;   
-   trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   //trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
    
    
    // Sell hedge prevention because we are already selling! Important!
@@ -317,11 +317,14 @@ void OnTick()
    numIncreaseLots++;
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
+            
+   trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   
    if(numIncreaseLots < lotStepLimit)
    {
    lotSize  = lotSize * mult; 
-   }         
-   trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   }
+   
    if((numSidesTested % 2) == 0)
    {
    //sellPrice = sellPrice - (sellPrice * priceMovePercentage);
@@ -340,11 +343,14 @@ void OnTick()
    numIncreaseLots++;
    lastPL = lastPL + PL;
    trade.PositionClose(Symbol());
+   
+   trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   
    if(numIncreaseLots < lotStepLimit)
    {
    lotSize  = lotSize * mult; 
    }    
-   trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+   
    if((numSidesTested % 2) == 0)
    {
    //buyPrice = buyPrice - (buyPrice * priceMovePercentage);
