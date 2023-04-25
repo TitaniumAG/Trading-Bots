@@ -97,7 +97,6 @@ namespace cAlgo.Robots
             symbol = Symbol;
             debt = 0;
             interest = 5;
-            acceptedSpanWidth = 1; 
             currentPrice = 0;
             buyPrice = 0;
             sellPrice = 0;
@@ -106,17 +105,17 @@ namespace cAlgo.Robots
             hedgeBuy = false;
             hedgeSell = false;
             defaultLotSize = 0.01;
-            maxAllowedDist = 100;
+            maxAllowedDist = 5;
             priceRange = 50;
-            priceMovePercentage = 0.00015;
             lotSize = defaultLotSize;
             tradeStarted = false;
             awaitEntry = 0;
             numSidesTested = 0;
-            freqDelay = 2000.0;
+            freqDelay = 0;
             numIncreaseLots = 0;
             mult = 3;
-            lotStepLimit = 10;
+            lotStepLimit = 20;
+            acceptedSpanWidth = 0; 
             
         }
 
@@ -140,17 +139,19 @@ namespace cAlgo.Robots
             double spanAvg = Math.Abs((spanAValue + spanBValue) / 2);
             double spanHigh = spanAvg + maxAllowedDist;
             double spanLow = spanAvg - maxAllowedDist;
+            double spanWidth = Math.Abs(spanAValue - spanBValue);
             
             
             // Initial Buy trade; oversold conditions where sentiment is to buy up
-            if (rsiValue < 31 && cciValue < - 100 && TenkansenValue < spanLow && awaitEntry < 1)
+            // if (rsiValue < 31 && cciValue < - 100 && TenkansenValue < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
+            if (currentPrice < spanLow)
             {
             if(!tradeStarted)
             {
-            buyPrice = currentPrice;
+            buyPrice = spanLow;
             sellPrice = currentPrice - priceRange;
             // Open buy position here
-            Open(TradeType.Buy, "initial");
+            //Open(TradeType.Buy, "initial");
             
             // Buy hedge prevention because we are already Buying! Important!
             hedgeBuy = true;
@@ -160,14 +161,15 @@ namespace cAlgo.Robots
             
             
             // Initial Sell trade; overbought conditions where sentiment is to sell down
-            if (rsiValue > 70 && cciValue > 100 && TenkansenValue > spanHigh && awaitEntry < 1)
+            //if (rsiValue > 70 && cciValue > 100 && TenkansenValue > spanHigh && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
+            if (currentPrice > spanHigh)
             {
             if(!tradeStarted)
             { 
-            sellPrice = currentPrice;
+            sellPrice = spanHigh;
             buyPrice = currentPrice + priceRange;   
             // Open sell position here
-            Open(TradeType.Sell, "initial");
+            //Open(TradeType.Sell, "initial");
             
             // Sell hedge prevention because we are already selling! Important!
             hedgeSell = true;
@@ -190,19 +192,23 @@ namespace cAlgo.Robots
             // Close all positions
             Close(TradeType.Sell);
             Close(TradeType.Buy);
-            if(numIncreaseLots < lotStepLimit)
-            {
-            lotSize  = lotSize * mult; 
-            }  
+             
             // Open sell position
             Open(TradeType.Sell, "hedge");
+            
+            if(numIncreaseLots < lotStepLimit)
+            {
+            lotSize = lotSize * mult; 
+            } 
+            
             hedgeBuy = false;
             hedgeSell = true;
+        
             }   
             }
             
             if(currentPrice > buyPrice && tradeStarted)
-            {
+            {            
             if(!hedgeBuy)
             {
             numSidesTested++;
@@ -211,14 +217,18 @@ namespace cAlgo.Robots
             // Close all positions
             Close(TradeType.Sell);
             Close(TradeType.Buy);
-            if(numIncreaseLots < lotStepLimit)
-            {
-            lotSize  = lotSize * mult; 
-            }            
+                   
             // Open buy position
             Open(TradeType.Buy, "hedge");
+            
+            if(numIncreaseLots < lotStepLimit)
+            {
+            lotSize = lotSize * mult; 
+            } 
+            
             hedgeSell = false;
-            hedgeBuy = true;
+            hedgeBuy = true;       
+            
             }   
             }//////////////
             
@@ -253,7 +263,7 @@ namespace cAlgo.Robots
             
             // Output prints 
             
-            Chart.DrawStaticText("Data", awaitEntry.ToString("F"),0,0,Color.AliceBlue);
+            Chart.DrawStaticText("Data", freqDelay.ToString("F"),0,0,Color.AliceBlue);
             
           
             
