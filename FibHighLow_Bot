@@ -140,6 +140,13 @@ bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
 int candleAnalysisCount;
+double setupBuyPrice;
+double setupSellPrice;
+double assetScaling;
+double buyStopPrice;
+double sellStopPrice;
+input double maxAtr;
+input double minLotSize;
 
 
 
@@ -237,15 +244,15 @@ int OnInit()
    consolidationLimit = 100;
    
    
-   mult = 3;
+   mult = 2;
    freqDelay = 2000;
-   priceRange = 0.5;
+   priceRange = 0.01;
    maxAllowedDist = 2;
    posCount = 1;   
-   interest = 33;
-   defaultLotSize = 0.01;
+   interest = 5;
+   defaultLotSize = minLotSize;
    lotSize = defaultLotSize;
-   defaultMaxLoss = 0;
+   defaultMaxLoss = 200;
    maxLoss = defaultMaxLoss;
    defaultTrailingStop = 1;
    trailingStop = defaultTrailingStop;
@@ -253,7 +260,8 @@ int OnInit()
    sellPrice = 0;
    fibOffset = 0;
    maxDeviation = 500;
-   candleAnalysisCount = 240;
+   candleAnalysisCount = 100;
+   assetScaling = 4; // USD/JPY  Symbol/Asset 
    
 
 
@@ -306,6 +314,9 @@ void OnTick()
   datetime dateTime1 = ObjectGetInteger(0,"Fibonacci",OBJPROP_TIME,1);
   double priceLevel0 = ObjectGetDouble(0,"Fibonacci",OBJPROP_PRICE,1);
   double priceLevel50= ((priceLevel100 + priceLevel0)*0.5);
+  
+  
+
 
 
 //// Adding time constraints if needed
@@ -343,10 +354,23 @@ void OnTick()
    
 
 
+// array for ATR price data
+double myAtrArray[];  
 
 // Sort it from current candle to oldest candle
 ArraySetAsSeries(PriceInfo, true);
 
+// Calculate ATR with a period of 14
+int myAtr = iATR(_Symbol, _Period, 14);
+
+// sort the price data from the current candle downwards
+ArraySetAsSeries(myAtrArray,true);
+
+// defined ea, from current candle, for 3 candles, save in array
+CopyBuffer(myAtr,0,0,3,myAtrArray);
+
+// calculate the current indicator values
+double myAtrValue=myAtrArray[0];
 
 
 
@@ -359,38 +383,52 @@ double level61 = ((midLevel + midLevel2)* 0.5) - fibOffset;
 double level38 = ((midLevel + midLevel3)*0.5) + fibOffset;
 
 openPrice = iOpen(Symbol(), PERIOD_H1, 0);
-ObjectCreate(0,"openPrice",OBJ_HLINE,0,0,openPrice);
-color LineColorO = clrBeige;
-ObjectSetInteger(0, "openPrice", OBJPROP_COLOR, LineColorO);
 
 
 
-color LineColorP = clrAqua;
 
 
-ObjectCreate(0,"level61",OBJ_HLINE,0,0,level61);
-ObjectCreate(0,"level38",OBJ_HLINE,0,0,level38);
+color LineColorP = clrMagenta;
+color LineColorP2 = clrAqua;
+
+
+
 priceRange = (buyPrice - sellPrice);
 priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
-if(!tradeStarted && !priceDataSet && awaitEntry < 1)
+if(!tradeStarted && !priceDataSet && awaitEntry < 1 && myAtrValue > maxAtr)
 {
 oldOpenPrice = openPrice;
-buyPrice = priceLevel100;
-sellPrice = priceLevel0;
-ObjectCreate(0,"buyPrice",OBJ_HLINE,0,0,buyPrice);
-ObjectCreate(0,"sellPrice",OBJ_HLINE,0,0,sellPrice);
-ObjectSetInteger(0, "buyPrice", OBJPROP_COLOR, LineColorP);
-ObjectSetInteger(0, "sellPrice", OBJPROP_COLOR, LineColorP);
+setupBuyPrice = priceLevel100;
+setupSellPrice = priceLevel0;
+buyStopPrice = (priceLevel100 - myAtrValue);
+sellStopPrice = (priceLevel0 + myAtrValue);
+ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
+ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
+ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
+ObjectCreate(0,"sellStopPrice",OBJ_HLINE,0,0,sellStopPrice);
+
+ObjectSetInteger(0, "setupBuyPrice", OBJPROP_COLOR, LineColorP);
+ObjectSetInteger(0, "setupSellPrice", OBJPROP_COLOR, LineColorP);
+ObjectSetInteger(0, "buyStopPrice", OBJPROP_COLOR, LineColorP2);
+ObjectSetInteger(0, "sellStopPrice", OBJPROP_COLOR, LineColorP2);
 priceDataSet=true;
 }
 
-if(!tradeStarted && awaitEntry < 1)
+if(priceDataSet && !tradeStarted && awaitEntry < 1)
 {
 
-if(currentPrice < (buyPrice) && currentPrice > (sellPrice))
+if(currentPrice > setupBuyPrice)
 {
-tradeStarted = true;   
+   buyPrice = setupBuyPrice;
+   sellPrice = buyStopPrice;
+   tradeStarted = true;
+}
+if(currentPrice < setupSellPrice)
+{
+   sellPrice = setupSellPrice;
+   buyPrice = sellStopPrice;
+   tradeStarted = true;
 }
 
 }
@@ -405,7 +443,7 @@ tradeStarted = true;
     
 ////////////////////////////////////
 // starting the trades
-// Buying
+// Selling
    if(!hedgeSell && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
      {   
              
@@ -413,8 +451,10 @@ tradeStarted = true;
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
+         lastPL-=PL;
          trade.PositionClose(Symbol());
-         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         lotSize*=2;
          
          
          
@@ -423,7 +463,7 @@ tradeStarted = true;
          tradeAction = "sell";
              
      }
-// Selling
+// Buying
    if(!hedgeBuy && currentPrice > (buyPrice + breakoutRange) && tradeStarted)
      {
          
@@ -431,8 +471,10 @@ tradeStarted = true;
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
+         lastPL-=PL;
          trade.PositionClose(Symbol());
-         trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         lotSize*=2;
          
          
          hedgeSell = false;
@@ -441,39 +483,6 @@ tradeStarted = true;
          
         
      }
-     
-     
-    if(PL < -500)
-    {
-      
-      tradePrimed = false;
-      hedgeBuy = false;  
-      hedgeSell = false;
-      for(int i=0; i < posCount; i++)
-      {
-         trade.PositionClose(Symbol());
-      }
-      posCount = 1;
-      lastPL-=PL;
-      lotSize = defaultLotSize;
-      debt = 0;
-      numSidesTested = 0;
-      awaitEntry = freqDelay;
-      numIncreaseLots = 0;
-      rangeTestCount = 0;
-      primedPrice = 1;
-      maPrice = -1;
-      buyPriceSet = false;
-      sellPriceSet = false;
-      seekingProfit = false;
-      timeInTrade = 0;
-      trailingStop = defaultTrailingStop;
-      buyPrice = 100000;
-      sellPrice = 0;
-      tradeAction = "null";
-      priceDataSet = false;
-      tradeStarted = false;
-    }
  
      
      
@@ -594,6 +603,7 @@ debt = MathAbs(lastPL);
       "Max chain  | "+DoubleToString(maxRangeTest,Digits()+1) + "\n"+
       "Max drawdown  | "+DoubleToString(maxDrawdown,Digits()+1) + "\n"+
       "Consolidation limit  | "+DoubleToString(consolidationLimit,Digits()+1) + "\n"+
+      "ATR  | "+DoubleToString(myAtrValue,Digits()+1) + "\n"+
       "Buy price set | "+ myString + "\n"+
       "Sell price set | "+ myString2 + "\n"+
       "In trade | "+ myString3 + "\n"+
