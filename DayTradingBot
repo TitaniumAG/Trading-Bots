@@ -143,13 +143,11 @@ int candleAnalysisCount;
 double setupBuyPrice;
 double setupSellPrice;
 double assetScaling;
-bool tradeComplete;
-input double userBuyPrice;
-input double userSellPrice;
-input double userBuyStopPrice;
-input double userSellStopPrice;
-input double userLotSize;
-
+double buyStopPrice;
+double sellStopPrice;
+input double maxAtr;
+input double minLotSize;
+input double candleCount;
 
 
 
@@ -247,23 +245,23 @@ int OnInit()
    consolidationLimit = 100;
    
    
-   mult = 3;
-   freqDelay = 2000;
+   mult = 2;
+   freqDelay = 500;
    priceRange = 0.01;
    maxAllowedDist = 2;
    posCount = 1;   
-   interest = 33;
-   defaultLotSize = userLotSize;
+   interest = 5;
+   defaultLotSize = minLotSize;
    lotSize = defaultLotSize;
    defaultMaxLoss = 200;
    maxLoss = defaultMaxLoss;
    defaultTrailingStop = 1;
    trailingStop = defaultTrailingStop;
-   buyPrice = 0;
+   buyPrice = 100000;
    sellPrice = 0;
    fibOffset = 0;
    maxDeviation = 500;
-   candleAnalysisCount = 100;
+   candleAnalysisCount = candleCount;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    
 
@@ -294,6 +292,31 @@ void OnTick()
   
   MqlRates priceInformation[];
   ArraySetAsSeries(priceInformation, true);
+  
+  
+  data = CopyRates(Symbol(), Period(), 0, Bars(Symbol(),Period()),priceInformation);
+  
+  ObjectDelete(_Symbol,"Fibonacci");
+  
+  ObjectCreate
+  (
+  _Symbol,
+  "Fibonacci",
+  OBJ_FIBO,
+  0,
+  priceInformation[candleAnalysisCount].time,
+  priceInformation[highestCandle].high,
+  priceInformation[0].time,
+  priceInformation[lowestCandle].low
+  );
+  
+  datetime dateTime0 = ObjectGetInteger(0,"Fibonacci",OBJPROP_TIME, 0);
+  double priceLevel100 = ObjectGetDouble(0,"Fibonacci",OBJPROP_PRICE, 0);
+  datetime dateTime1 = ObjectGetInteger(0,"Fibonacci",OBJPROP_TIME,1);
+  double priceLevel0 = ObjectGetDouble(0,"Fibonacci",OBJPROP_PRICE,1);
+  double priceLevel50= ((priceLevel100 + priceLevel0)*0.5);
+  
+  
 
 
 
@@ -332,9 +355,35 @@ void OnTick()
    
 
 
+// array for ATR price data
+double myAtrArray[];  
 
 // Sort it from current candle to oldest candle
 ArraySetAsSeries(PriceInfo, true);
+
+// Calculate ATR with a period of 14
+int myAtr = iATR(_Symbol, _Period, 14);
+
+// sort the price data from the current candle downwards
+ArraySetAsSeries(myAtrArray,true);
+
+// defined ea, from current candle, for 3 candles, save in array
+CopyBuffer(myAtr,0,0,3,myAtrArray);
+
+// calculate the current indicator values
+double myAtrValue=myAtrArray[0];
+
+
+
+// trade entry conditions #0000
+
+double midLevel =(((priceLevel100 + priceLevel0)*0.5));
+double midLevel2 =(midLevel + priceLevel100)* 0.5;
+double midLevel3 =(midLevel + priceLevel0)* 0.5;
+double level61 = ((midLevel + midLevel2)* 0.5) - fibOffset;
+double level38 = ((midLevel + midLevel3)*0.5) + fibOffset;
+
+openPrice = iOpen(Symbol(), PERIOD_H1, 0);
 
 
 
@@ -344,36 +393,45 @@ color LineColorP = clrMagenta;
 color LineColorP2 = clrAqua;
 
 
-if(!tradeStarted && !priceDataSet && awaitEntry < 1)
+
+priceRange = (buyPrice - sellPrice);
+priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
+
+if(!tradeStarted && !priceDataSet && awaitEntry < 1 && myAtrValue > maxAtr)
+{
+if(currentPrice < (priceLevel100 - (myAtrValue*2)) && currentPrice > (priceLevel0 + (myAtrValue*2)))
 {
 oldOpenPrice = openPrice;
-setupBuyPrice = userBuyPrice;
-setupSellPrice = userSellPrice;
-ObjectCreate(0,"buyPrice",OBJ_HLINE,0,0,setupBuyPrice);
-ObjectCreate(0,"sellPrice",OBJ_HLINE,0,0,setupSellPrice);
-ObjectSetInteger(0, "buyPrice", OBJPROP_COLOR, LineColorP);
-ObjectSetInteger(0, "sellPrice", OBJPROP_COLOR, LineColorP);
+setupBuyPrice = priceLevel100;
+setupSellPrice = priceLevel0;
+buyStopPrice = (priceLevel100 - myAtrValue);
+sellStopPrice = (priceLevel0 + myAtrValue);
+ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
+ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
+ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
+ObjectCreate(0,"sellStopPrice",OBJ_HLINE,0,0,sellStopPrice);
 
-ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,userBuyStopPrice);
-ObjectCreate(0,"sellStopPrice",OBJ_HLINE,0,0,userSellStopPrice);
+ObjectSetInteger(0, "setupBuyPrice", OBJPROP_COLOR, LineColorP);
+ObjectSetInteger(0, "setupSellPrice", OBJPROP_COLOR, LineColorP);
 ObjectSetInteger(0, "buyStopPrice", OBJPROP_COLOR, LineColorP2);
 ObjectSetInteger(0, "sellStopPrice", OBJPROP_COLOR, LineColorP2);
-priceDataSet=true;
+priceDataSet = true;
+}
 }
 
-if(!tradeStarted && awaitEntry < 1 && !tradeComplete)
+if(priceDataSet && !tradeStarted && awaitEntry < 1)
 {
 
 if(currentPrice > setupBuyPrice)
 {
    buyPrice = setupBuyPrice;
-   sellPrice = userBuyStopPrice; 
+   sellPrice = buyStopPrice;
    tradeStarted = true;
 }
-if(currentPrice < setupSellPrice && !tradeComplete)
+if(currentPrice < setupSellPrice)
 {
    sellPrice = setupSellPrice;
-   buyPrice = userSellStopPrice;
+   buyPrice = sellStopPrice;
    tradeStarted = true;
 }
 
@@ -400,7 +458,12 @@ if(currentPrice < setupSellPrice && !tradeComplete)
          lastPL-=PL;
          trade.PositionClose(Symbol());
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         
+         if(numSidesTested > 0 && numSidesTested % 2 == 0)
+         {
          lotSize*=2;
+         }
+         
          
          
          
@@ -420,7 +483,12 @@ if(currentPrice < setupSellPrice && !tradeComplete)
          lastPL-=PL;
          trade.PositionClose(Symbol());
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         
+         if(numSidesTested > 0 && numSidesTested % 2 == 0)
+         {
          lotSize*=2;
+         }
+         
          
          
          hedgeSell = false;
@@ -466,7 +534,6 @@ debt = MathAbs(lastPL);
       sellPrice = 0;
       tradeAction = "null";
       priceDataSet = false;
-      tradeComplete = true;
       tradeStarted = false;
       }
  
@@ -550,6 +617,7 @@ debt = MathAbs(lastPL);
       "Max chain  | "+DoubleToString(maxRangeTest,Digits()+1) + "\n"+
       "Max drawdown  | "+DoubleToString(maxDrawdown,Digits()+1) + "\n"+
       "Consolidation limit  | "+DoubleToString(consolidationLimit,Digits()+1) + "\n"+
+      "ATR  | "+DoubleToString(myAtrValue,Digits()+1) + "\n"+
       "Buy price set | "+ myString + "\n"+
       "Sell price set | "+ myString2 + "\n"+
       "In trade | "+ myString3 + "\n"+
