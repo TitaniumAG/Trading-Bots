@@ -145,10 +145,8 @@ double setupSellPrice;
 double assetScaling;
 double buyStopPrice;
 double sellStopPrice;
-input double maxAtr;
-input double minLotSize;
-input double candleCount;
-
+string currentSymbol;
+double maxAtr;
 
 
 
@@ -251,7 +249,7 @@ int OnInit()
    maxAllowedDist = 2;
    posCount = 1;   
    interest = 5;
-   defaultLotSize = minLotSize;
+   defaultLotSize = 0.01;
    lotSize = defaultLotSize;
    defaultMaxLoss = 200;
    maxLoss = defaultMaxLoss;
@@ -261,8 +259,10 @@ int OnInit()
    sellPrice = 0;
    fibOffset = 0;
    maxDeviation = 500;
-   candleAnalysisCount = candleCount;
+   candleAnalysisCount = 110;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
+   maxAtr = 0;
+   
    
 
 
@@ -273,7 +273,33 @@ int OnInit()
   }
 
 
+void OnStart(){
 
+currentSymbol = Symbol();
+
+if(currentSymbol == "NAS100"){
+defaultLotSize = 0.1;
+}
+if(currentSymbol == "ETHUSD"){
+defaultLotSize = 0.01;
+}
+if(currentSymbol == "BTCUSD"){
+defaultLotSize = 0.01;
+}
+if(currentSymbol == "DJ30"){
+defaultLotSize = 0.1;
+}
+if(currentSymbol == "USOUSD"){
+defaultLotSize = 0.01;
+}
+if(currentSymbol == "XAUUSD"){
+defaultLotSize = 0.01;
+}
+if(currentSymbol == "USDJPY"){
+defaultLotSize = 0.01;
+}
+
+}
 
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -461,7 +487,7 @@ if(currentPrice < setupSellPrice)
          
          if(numSidesTested > 0 && numSidesTested % 2 == 0)
          {
-         lotSize*=2;
+         lotSize*=3;
          }
          
          
@@ -486,7 +512,7 @@ if(currentPrice < setupSellPrice)
          
          if(numSidesTested > 0 && numSidesTested % 2 == 0)
          {
-         lotSize*=2;
+         lotSize*=3;
          }
          
          
