@@ -264,7 +264,29 @@ int OnInit()
    maxAtr = 0;
    
    
+   currentSymbol = Symbol();
 
+   if(currentSymbol == "NAS100"){
+   defaultLotSize = 0.1;
+   }
+   if(currentSymbol == "ETHUSD"){
+   defaultLotSize = 0.01;
+   }
+   if(currentSymbol == "BTCUSD"){
+   defaultLotSize = 0.01;
+   }
+   if(currentSymbol == "DJ30"){
+   defaultLotSize = 0.1;
+   }
+   if(currentSymbol == "USOUSD"){
+   defaultLotSize = 0.01;
+   }
+   if(currentSymbol == "XAUUSD"){
+   defaultLotSize = 0.01;
+   }
+   if(currentSymbol == "USDJPY"){
+   defaultLotSize = 0.01;
+   }
 
 
 
@@ -273,33 +295,6 @@ int OnInit()
   }
 
 
-void OnStart(){
-
-currentSymbol = Symbol();
-
-if(currentSymbol == "NAS100"){
-defaultLotSize = 0.1;
-}
-if(currentSymbol == "ETHUSD"){
-defaultLotSize = 0.01;
-}
-if(currentSymbol == "BTCUSD"){
-defaultLotSize = 0.01;
-}
-if(currentSymbol == "DJ30"){
-defaultLotSize = 0.1;
-}
-if(currentSymbol == "USOUSD"){
-defaultLotSize = 0.01;
-}
-if(currentSymbol == "XAUUSD"){
-defaultLotSize = 0.01;
-}
-if(currentSymbol == "USDJPY"){
-defaultLotSize = 0.01;
-}
-
-}
 
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -642,6 +637,7 @@ debt = MathAbs(lastPL);
       "Wait  | "+DoubleToString(awaitEntry,Digits()+1) + "\n"+
       "Max chain  | "+DoubleToString(maxRangeTest,Digits()+1) + "\n"+
       "Max drawdown  | "+DoubleToString(maxDrawdown,Digits()+1) + "\n"+
+      "Min Lots  | "+DoubleToString(defaultLotSize,Digits()+1) + "\n"+
       "Consolidation limit  | "+DoubleToString(consolidationLimit,Digits()+1) + "\n"+
       "ATR  | "+DoubleToString(myAtrValue,Digits()+1) + "\n"+
       "Buy price set | "+ myString + "\n"+
