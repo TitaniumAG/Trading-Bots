@@ -148,6 +148,9 @@ double sellStopPrice;
 string currentSymbol;
 double maxAtr;
 int scaling;
+double halfPoint;
+bool biasBuy;
+bool biasSell;
 
 
 
@@ -418,6 +421,7 @@ openPrice = iOpen(Symbol(), PERIOD_H1, 0);
 
 color LineColorP = clrMagenta;
 color LineColorP2 = clrAqua;
+color LineColorP3 = clrAntiqueWhite;
 
 
 
@@ -446,7 +450,7 @@ priceDataSet = true;
 }
 }
 
-if(priceDataSet && !tradeStarted && awaitEntry < 1)
+if(!biasBuy && awaitEntry < 1 && priceDataSet)
 {
 
 if(currentPrice > ((setupBuyPrice + setupSellPrice)/2))
@@ -455,16 +459,30 @@ if(currentPrice > ((setupBuyPrice + setupSellPrice)/2))
    sellPrice = buyStopPrice;
    tradeAction = "buy";
    tradeStarted = true;
+   biasBuy = true;
+   biasSell = false;
 }
+}
+
+if(!biasSell && awaitEntry < 1 && priceDataSet)
+{
 if(currentPrice < ((setupBuyPrice + setupSellPrice)/2))
 {
    tradeAction = "sell";
    sellPrice = setupSellPrice;
    buyPrice = sellStopPrice;
    tradeStarted = true;
+   biasBuy = false;
+   biasSell = true;
+}
 }
 
-}
+
+halfPoint = (setupBuyPrice+setupSellPrice)/2;
+ObjectCreate(0,"halfPoint",OBJ_HLINE,0,0,halfPoint);
+ObjectSetInteger(0, "halfPoint", OBJPROP_COLOR, LineColorP3);
+
+
 
 
 
