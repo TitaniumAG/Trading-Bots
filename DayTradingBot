@@ -147,10 +147,8 @@ double buyStopPrice;
 double sellStopPrice;
 string currentSymbol;
 double maxAtr;
-int scaling;
-double halfPoint;
-bool biasBuy;
-bool biasSell;
+double sl_b;
+double sl_s;
 
 
 
@@ -251,10 +249,8 @@ int OnInit()
    freqDelay = 500;
    priceRange = 0.01;
    maxAllowedDist = 2;
-   posCount = 1;   
-   
-   
-   defaultMaxLoss = 100;
+   posCount = 1;
+   defaultMaxLoss = 200;
    maxLoss = defaultMaxLoss;
    defaultTrailingStop = 1;
    trailingStop = defaultTrailingStop;
@@ -262,17 +258,15 @@ int OnInit()
    sellPrice = 0;
    fibOffset = 0;
    maxDeviation = 500;
-   candleAnalysisCount = 100;
+   candleAnalysisCount = 110;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    maxAtr = 0;
-   
    
    
    currentSymbol = Symbol();
 
    if(currentSymbol == "NAS100"){
    defaultLotSize = 0.1;
-   
    }
    if(currentSymbol == "ETHUSD"){
    defaultLotSize = 0.01;
@@ -293,9 +287,8 @@ int OnInit()
    defaultLotSize = 0.01;
    }
    
-   interest = 200;
+   interest = 5;
    lotSize = defaultLotSize;
-   scaling = 2;
 
 
 
@@ -421,7 +414,7 @@ openPrice = iOpen(Symbol(), PERIOD_H1, 0);
 
 color LineColorP = clrMagenta;
 color LineColorP2 = clrAqua;
-color LineColorP3 = clrAntiqueWhite;
+color LineColorP3 = clrRed;
 
 
 
@@ -435,8 +428,8 @@ if(currentPrice < (priceLevel100 - (myAtrValue*2)) && currentPrice > (priceLevel
 oldOpenPrice = openPrice;
 setupBuyPrice = priceLevel100;
 setupSellPrice = priceLevel0;
-buyStopPrice = (priceLevel100 - myAtrValue);
-sellStopPrice = (priceLevel0 + myAtrValue);
+buyStopPrice = (priceLevel100 - (myAtrValue*2));
+sellStopPrice = (priceLevel0 + (myAtrValue*2));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
@@ -446,41 +439,39 @@ ObjectSetInteger(0, "setupBuyPrice", OBJPROP_COLOR, LineColorP);
 ObjectSetInteger(0, "setupSellPrice", OBJPROP_COLOR, LineColorP);
 ObjectSetInteger(0, "buyStopPrice", OBJPROP_COLOR, LineColorP2);
 ObjectSetInteger(0, "sellStopPrice", OBJPROP_COLOR, LineColorP2);
+
+sl_b = setupBuyPrice + (myAtrValue * 4);
+sl_s = setupSellPrice - (myAtrValue * 4);
+ObjectCreate(0,"sl_b",OBJ_HLINE,0,0,sl_b);
+ObjectCreate(0,"sl_s",OBJ_HLINE,0,0,sl_s);
+ObjectSetInteger(0, "sl_b", OBJPROP_COLOR, LineColorP3);
+ObjectSetInteger(0, "sl_s", OBJPROP_COLOR, LineColorP3);
+
+
 priceDataSet = true;
 }
 }
 
-if(!biasBuy && awaitEntry < 1 && priceDataSet)
+if(priceDataSet && !tradeStarted && awaitEntry < 1)
 {
 
-if(currentPrice > ((setupBuyPrice + setupSellPrice)/2))
+if(currentPrice > setupBuyPrice)
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
-   tradeAction = "buy";
    tradeStarted = true;
-   biasBuy = true;
-   biasSell = false;
 }
-}
-
-if(!biasSell && awaitEntry < 1 && priceDataSet)
+if(currentPrice < setupSellPrice)
 {
-if(currentPrice < ((setupBuyPrice + setupSellPrice)/2))
-{
-   tradeAction = "sell";
    sellPrice = setupSellPrice;
    buyPrice = sellStopPrice;
    tradeStarted = true;
-   biasBuy = false;
-   biasSell = true;
 }
+
 }
 
 
-halfPoint = (setupBuyPrice+setupSellPrice)/2;
-ObjectCreate(0,"halfPoint",OBJ_HLINE,0,0,halfPoint);
-ObjectSetInteger(0, "halfPoint", OBJPROP_COLOR, LineColorP3);
+
 
 
 
@@ -496,44 +487,62 @@ ObjectSetInteger(0, "halfPoint", OBJPROP_COLOR, LineColorP3);
 // starting the trades
 // Selling
    if(!hedgeSell && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
-{    
+     {   
+             
+
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
+         trade.PositionClose(Symbol());
          
-         trade.PositionClose(Symbol());      
          
-         if(tradeAction == "sell"){
+         
+         
+         
+         if(numSidesTested > 0 && numSidesTested % 2 == 0)
+         {
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         lotSize*=3; 
-         }   
+         lotSize*=2;         
+         }
+         
+         
+         
+         
+         
          hedgeBuy = false;
          hedgeSell = true;  
-         
+         tradeAction = "sell";
              
-}
-
-
+     }
 // Buying
    if(!hedgeBuy && currentPrice > (buyPrice + breakoutRange) && tradeStarted)
-{ 
+     {
+         
+         
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
-         
          trade.PositionClose(Symbol());
-         if(tradeAction == "buy"){
+         
+         
+         
+         if(numSidesTested > 0 && numSidesTested % 2 == 0)
+         {
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         lotSize*=3;
-         }     
+         lotSize*=2;
+         }
+         
+         
+         
+         
          hedgeSell = false;
          hedgeBuy = true;
-         
+         tradeAction = "buy";
          
         
-}
+     }
  
      
      
@@ -573,8 +582,41 @@ debt = MathAbs(lastPL);
       priceDataSet = false;
       tradeStarted = false;
       }
- 
-
+      
+      
+      //cancelling trades
+      if(priceDataSet){
+      if(currentPrice > sl_b || currentPrice < sl_s){
+      
+      tradePrimed = false;
+      hedgeBuy = false;  
+      hedgeSell = false;
+      for(int i=0; i < posCount; i++)
+      {
+         trade.PositionClose(Symbol());
+      }
+      posCount = 1;
+      lastPL=0;
+      lotSize = defaultLotSize;
+      debt = 0;
+      numSidesTested = 0;
+      awaitEntry = freqDelay;
+      numIncreaseLots = 0;
+      rangeTestCount = 0;
+      primedPrice = 1;
+      maPrice = -1;
+      buyPriceSet = false;
+      sellPriceSet = false;
+      seekingProfit = false;
+      timeInTrade = 0;
+      trailingStop = defaultTrailingStop;
+      buyPrice = 100000;
+      sellPrice = 0;
+      tradeAction = "null";
+      priceDataSet = false;
+      tradeStarted = false;
+      }
+      }
     
     
 
@@ -648,8 +690,6 @@ debt = MathAbs(lastPL);
       "P&L  | "+DoubleToString(PL,Digits()+1) + "\n"+
       "Debt  | "+DoubleToString(debt,Digits()+1) + "\n"+
       "Current  | "+DoubleToString(currentPrice,Digits()+1) + "\n"+
-      "Current symbol | "+ currentSymbol + "\n"+
-      "Trade action | "+ tradeAction + "\n"+
       "Buy price  | "+DoubleToString(buyPrice,Digits()+1) + "\n"+
       "Sell price  | "+DoubleToString(sellPrice,Digits()+1) + "\n"+
       "Wait  | "+DoubleToString(awaitEntry,Digits()+1) + "\n"+
