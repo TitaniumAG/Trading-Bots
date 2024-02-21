@@ -147,6 +147,7 @@ double buyStopPrice;
 double sellStopPrice;
 string currentSymbol;
 double maxAtr;
+int scaling;
 
 
 
@@ -248,10 +249,9 @@ int OnInit()
    priceRange = 0.01;
    maxAllowedDist = 2;
    posCount = 1;   
-   interest = 5;
-   defaultLotSize = 0.01;
-   lotSize = defaultLotSize;
-   defaultMaxLoss = 200;
+   
+   
+   defaultMaxLoss = 100;
    maxLoss = defaultMaxLoss;
    defaultTrailingStop = 1;
    trailingStop = defaultTrailingStop;
@@ -259,15 +259,17 @@ int OnInit()
    sellPrice = 0;
    fibOffset = 0;
    maxDeviation = 500;
-   candleAnalysisCount = 110;
+   candleAnalysisCount = 100;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    maxAtr = 0;
+   
    
    
    currentSymbol = Symbol();
 
    if(currentSymbol == "NAS100"){
    defaultLotSize = 0.1;
+   
    }
    if(currentSymbol == "ETHUSD"){
    defaultLotSize = 0.01;
@@ -287,6 +289,10 @@ int OnInit()
    if(currentSymbol == "USDJPY"){
    defaultLotSize = 0.01;
    }
+   
+   interest = 200;
+   lotSize = defaultLotSize;
+   scaling = 2;
 
 
 
@@ -443,14 +449,16 @@ priceDataSet = true;
 if(priceDataSet && !tradeStarted && awaitEntry < 1)
 {
 
-if(currentPrice > setupBuyPrice)
+if(currentPrice > ((setupBuyPrice + setupSellPrice)/2))
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
+   tradeAction = "buy";
    tradeStarted = true;
 }
-if(currentPrice < setupSellPrice)
+if(currentPrice < ((setupBuyPrice + setupSellPrice)/2))
 {
+   tradeAction = "sell";
    sellPrice = setupSellPrice;
    buyPrice = sellStopPrice;
    tradeStarted = true;
@@ -470,54 +478,44 @@ if(currentPrice < setupSellPrice)
 // starting the trades
 // Selling
    if(!hedgeSell && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
-     {   
-             
-
+{    
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
-         trade.PositionClose(Symbol());
+         
+         trade.PositionClose(Symbol());      
+         
+         if(tradeAction == "sell"){
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         
-         if(numSidesTested > 0 && numSidesTested % 2 == 0)
-         {
-         lotSize*=3;
-         }
-         
-         
-         
-         
+         lotSize*=3; 
+         }   
          hedgeBuy = false;
          hedgeSell = true;  
-         tradeAction = "sell";
+         
              
-     }
+}
+
+
 // Buying
    if(!hedgeBuy && currentPrice > (buyPrice + breakoutRange) && tradeStarted)
-     {
-         
-         
+{ 
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
+         
          trade.PositionClose(Symbol());
+         if(tradeAction == "buy"){
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         
-         if(numSidesTested > 0 && numSidesTested % 2 == 0)
-         {
          lotSize*=3;
-         }
-         
-         
-         
+         }     
          hedgeSell = false;
          hedgeBuy = true;
-         tradeAction = "buy";
+         
          
         
-     }
+}
  
      
      
@@ -632,6 +630,8 @@ debt = MathAbs(lastPL);
       "P&L  | "+DoubleToString(PL,Digits()+1) + "\n"+
       "Debt  | "+DoubleToString(debt,Digits()+1) + "\n"+
       "Current  | "+DoubleToString(currentPrice,Digits()+1) + "\n"+
+      "Current symbol | "+ currentSymbol + "\n"+
+      "Trade action | "+ tradeAction + "\n"+
       "Buy price  | "+DoubleToString(buyPrice,Digits()+1) + "\n"+
       "Sell price  | "+DoubleToString(sellPrice,Digits()+1) + "\n"+
       "Wait  | "+DoubleToString(awaitEntry,Digits()+1) + "\n"+
