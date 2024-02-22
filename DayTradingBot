@@ -268,12 +268,6 @@ int OnInit()
    if(currentSymbol == "NAS100"){
    defaultLotSize = 0.1;
    }
-   if(currentSymbol == "ETHUSD"){
-   defaultLotSize = 0.01;
-   }
-   if(currentSymbol == "BTCUSD"){
-   defaultLotSize = 0.01;
-   }
    if(currentSymbol == "DJ30"){
    defaultLotSize = 0.1;
    }
@@ -284,6 +278,15 @@ int OnInit()
    defaultLotSize = 0.01;
    }
    if(currentSymbol == "USDJPY"){
+   defaultLotSize = 0.01;
+   }
+   if(currentSymbol == "ETHUSD"){
+   defaultLotSize = 0.01;
+   }
+   if(currentSymbol == "BTCUSD"){
+   defaultLotSize = 0.01;
+   }
+   if(currentSymbol == "XRPUSD"){
    defaultLotSize = 0.01;
    }
    
@@ -503,7 +506,7 @@ if(currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % 1 == 0)
          {
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         lotSize*=2;         
+         lotSize*=3;         
          }
          
          
@@ -531,7 +534,7 @@ if(currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % 1 == 0)
          {
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         lotSize*=2;
+         lotSize*=3;
          }
          
          
@@ -583,7 +586,7 @@ debt = MathAbs(lastPL);
       tradeStarted = false;
       }
       
-      
+      /*
       //cancelling trades
       if(priceDataSet){
       if(currentPrice > sl_b || currentPrice < sl_s){
@@ -617,7 +620,7 @@ debt = MathAbs(lastPL);
       tradeStarted = false;
       }
       }
-    
+    */
     
 
 
