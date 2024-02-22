@@ -149,6 +149,7 @@ string currentSymbol;
 double maxAtr;
 double sl_b;
 double sl_s;
+int scaling;
 
 
 
@@ -292,6 +293,7 @@ int OnInit()
    
    interest = 5;
    lotSize = defaultLotSize;
+   scaling = 2;
 
 
 
@@ -498,14 +500,14 @@ if(currentPrice < sellStopPrice)
          numIncreaseLots++;
          lastPL-=PL;
          trade.PositionClose(Symbol());
-         
-         
-         
-         
-         
-         if(numSidesTested > 0 && numSidesTested % 1 == 0)
-         {
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         
+         
+         
+         
+         if(numSidesTested > 0 && numSidesTested % scaling == 0)
+         {
+         
          lotSize*=3;         
          }
          
@@ -528,12 +530,12 @@ if(currentPrice < sellStopPrice)
          numIncreaseLots++;
          lastPL-=PL;
          trade.PositionClose(Symbol());
-         
-         
-         
-         if(numSidesTested > 0 && numSidesTested % 1 == 0)
-         {
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         
+         
+         if(numSidesTested > 0 && numSidesTested % scaling == 0)
+         {
+         
          lotSize*=3;
          }
          
