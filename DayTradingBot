@@ -455,16 +455,16 @@ priceDataSet = true;
 if(priceDataSet && !tradeStarted && awaitEntry < 1)
 {
 
-if(currentPrice > setupBuyPrice)
+if(currentPrice > buyStopPrice)
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
    tradeStarted = true;
 }
-if(currentPrice < setupSellPrice)
+if(currentPrice < sellStopPrice)
 {
-   sellPrice = setupSellPrice;
    buyPrice = sellStopPrice;
+   sellPrice = setupSellPrice;
    tradeStarted = true;
 }
 
@@ -500,7 +500,7 @@ if(currentPrice < setupSellPrice)
          
          
          
-         if(numSidesTested > 0 && numSidesTested % 2 == 0)
+         if(numSidesTested > 0 && numSidesTested % 1 == 0)
          {
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          lotSize*=2;         
@@ -528,7 +528,7 @@ if(currentPrice < setupSellPrice)
          
          
          
-         if(numSidesTested > 0 && numSidesTested % 2 == 0)
+         if(numSidesTested > 0 && numSidesTested % 1 == 0)
          {
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          lotSize*=2;
