@@ -508,7 +508,7 @@ if(currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
          
-         lotSize*=3;         
+         lotSize*=2;         
          }
          
          
@@ -536,7 +536,7 @@ if(currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
          
-         lotSize*=3;
+         lotSize*=2;
          }
          
          
