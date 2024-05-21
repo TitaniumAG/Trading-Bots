@@ -139,7 +139,7 @@ double priceDeviation;
 bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
-int candleAnalysisCount;
+input int candleAnalysisCount;
 double setupBuyPrice;
 double setupSellPrice;
 double assetScaling;
@@ -259,7 +259,7 @@ int OnInit()
    sellPrice = 0;
    fibOffset = 0;
    maxDeviation = 500;
-   candleAnalysisCount = 110;
+   //candleAnalysisCount = 110;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    maxAtr = 0;
    tradeComplete = false;
