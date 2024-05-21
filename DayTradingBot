@@ -70,7 +70,7 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-double defaultLotSize;
+input double defaultLotSize;
 double lotSize;
 double maxTrendingDuration;
 double tradingFrequency;
@@ -266,31 +266,6 @@ int OnInit()
    
    
    currentSymbol = Symbol();
-
-   if(currentSymbol == "NAS100"){
-   defaultLotSize = 0.1;
-   }
-   if(currentSymbol == "DJ30"){
-   defaultLotSize = 0.1;
-   }
-   if(currentSymbol == "USOUSD"){
-   defaultLotSize = 0.01;
-   }
-   if(currentSymbol == "XAUUSD"){
-   defaultLotSize = 0.01;
-   }
-   if(currentSymbol == "USDJPY"){
-   defaultLotSize = 0.01;
-   }
-   if(currentSymbol == "ETHUSD"){
-   defaultLotSize = 0.01;
-   }
-   if(currentSymbol == "BTCUSD"){
-   defaultLotSize = 0.01;
-   }
-   if(currentSymbol == "XRPUSD"){
-   defaultLotSize = 0.01;
-   }
    
    interest = 5;
    lotSize = defaultLotSize;
