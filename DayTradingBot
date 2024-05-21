@@ -1,5 +1,5 @@
 // MetaT5Bot ////////////////////////////////////////////////////////////////////
-// IchimokuBitcoinMT5_Robot -  Luke Jeffers - 2023 - All rights reserved              //
+// IchimokuBitcoinMT5_Robot -  Luke Jeffers - 2023 - All rights reserved      //
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
@@ -150,7 +150,7 @@ double maxAtr;
 double sl_b;
 double sl_s;
 int scaling;
-
+bool tradeComplete;
 
 
 /*
@@ -262,6 +262,7 @@ int OnInit()
    candleAnalysisCount = 110;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    maxAtr = 0;
+   tradeComplete = false;
    
    
    currentSymbol = Symbol();
@@ -457,7 +458,7 @@ priceDataSet = true;
 }
 }
 
-if(priceDataSet && !tradeStarted && awaitEntry < 1)
+if(priceDataSet && !tradeStarted && awaitEntry < 1 && !tradeComplete)
 {
 
 if(currentPrice > buyStopPrice)
