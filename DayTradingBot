@@ -409,8 +409,8 @@ if(currentPrice < (priceLevel100 - (myAtrValue*2)) && currentPrice > (priceLevel
 oldOpenPrice = openPrice;
 setupBuyPrice = priceLevel100;
 setupSellPrice = priceLevel0;
-buyStopPrice = (priceLevel100 - (myAtrValue*2));
-sellStopPrice = (priceLevel0 + (myAtrValue*2));
+buyStopPrice = (priceLevel100 - (myAtrValue*1));
+sellStopPrice = (priceLevel0 + (myAtrValue*1));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
@@ -421,12 +421,15 @@ ObjectSetInteger(0, "setupSellPrice", OBJPROP_COLOR, LineColorP);
 ObjectSetInteger(0, "buyStopPrice", OBJPROP_COLOR, LineColorP2);
 ObjectSetInteger(0, "sellStopPrice", OBJPROP_COLOR, LineColorP2);
 
-sl_b = setupBuyPrice + (myAtrValue * 4);
-sl_s = setupSellPrice - (myAtrValue * 4);
+/*
+sl_b = setupBuyPrice + (myAtrValue * 1);
+sl_s = setupSellPrice - (myAtrValue * 1);
 ObjectCreate(0,"sl_b",OBJ_HLINE,0,0,sl_b);
 ObjectCreate(0,"sl_s",OBJ_HLINE,0,0,sl_s);
 ObjectSetInteger(0, "sl_b", OBJPROP_COLOR, LineColorP3);
 ObjectSetInteger(0, "sl_s", OBJPROP_COLOR, LineColorP3);
+*/
+
 
 
 priceDataSet = true;
