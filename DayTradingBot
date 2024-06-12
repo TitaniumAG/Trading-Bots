@@ -246,7 +246,7 @@ int OnInit()
    consolidationLimit = 100;
    
    
-   mult = 2;
+   mult = 3;
    freqDelay = 500;
    priceRange = 0.01;
    maxAllowedDist = 2;
@@ -404,13 +404,13 @@ priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
 if(!tradeStarted && !priceDataSet && awaitEntry < 1 && myAtrValue > maxAtr)
 {
-if(currentPrice < (priceLevel100 - (myAtrValue*2)) && currentPrice > (priceLevel0 + (myAtrValue*2)))
+if(currentPrice < priceLevel100  && currentPrice > priceLevel0 )
 {
 oldOpenPrice = openPrice;
 setupBuyPrice = priceLevel100;
 setupSellPrice = priceLevel0;
-buyStopPrice = (priceLevel100 - (myAtrValue*1));
-sellStopPrice = (priceLevel0 + (myAtrValue*1));
+buyStopPrice = (priceLevel100 - (myAtrValue*2));
+sellStopPrice = (priceLevel0 + (myAtrValue*2));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
