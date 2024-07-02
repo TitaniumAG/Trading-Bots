@@ -247,7 +247,7 @@ int OnInit()
    
    
    mult = 3;
-   freqDelay = 500;
+   freqDelay = 99999999999999999999999999999999999;
    priceRange = 0.01;
    maxAllowedDist = 2;
    posCount = 1;
@@ -284,7 +284,6 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnTick()
   {
-  
   ArraySetAsSeries(high, true);
   ArraySetAsSeries(low, true);
   
@@ -436,7 +435,7 @@ priceDataSet = true;
 }
 }
 
-if(priceDataSet && !tradeStarted && awaitEntry < 1 && !tradeComplete)
+if(priceDataSet && !tradeStarted && awaitEntry < 1)
 {
 
 if(currentPrice > buyStopPrice)
@@ -541,7 +540,6 @@ debt = MathAbs(lastPL);
       tradePrimed = false;
       hedgeBuy = false;  
       hedgeSell = false;
-      for(int i=0; i < posCount; i++)
       trade.PositionClose(Symbol());      
       posCount = 1;
       lastPL=0;
