@@ -151,7 +151,7 @@ double sl_b;
 double sl_s;
 int scaling;
 bool tradeComplete;
-
+input double atrScaling;
 
 /*
 void OpenBuyOrder()
@@ -270,6 +270,7 @@ int OnInit()
    interest = 5;
    lotSize = defaultLotSize;
    scaling = 2;
+   
 
 
 
@@ -408,8 +409,8 @@ if(currentPrice < priceLevel100  && currentPrice > priceLevel0 )
 oldOpenPrice = openPrice;
 setupBuyPrice = priceLevel100;
 setupSellPrice = priceLevel0;
-buyStopPrice = (priceLevel100 - (myAtrValue*2));
-sellStopPrice = (priceLevel0 + (myAtrValue*2));
+buyStopPrice = (priceLevel100 - (myAtrValue*atrScaling));
+sellStopPrice = (priceLevel0 + (myAtrValue*atrScaling));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
@@ -499,7 +500,7 @@ if(currentPrice < sellStopPrice)
              
      }
 // Buying
-   if(!hedgeBuy && currentPrice > (buyPrice + breakoutRange) && tradeStarted)
+   if(!hedgeBuy && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
      {
          
          
@@ -511,7 +512,7 @@ if(currentPrice < sellStopPrice)
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          
          
-         if(numSidesTested > 0 && numSidesTested % scaling == 0)
+         if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {
          
          lotSize*=2;
@@ -535,7 +536,7 @@ debt = MathAbs(lastPL);
     
      
      // closing trades #3333
-     if(PL > (debt + interest))
+     if(PL > 1000)
      {
       tradePrimed = false;
       hedgeBuy = false;  
