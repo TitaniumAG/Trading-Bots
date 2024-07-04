@@ -139,6 +139,7 @@ double priceDeviation;
 bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
+input double atrScaling;
 input int candleAnalysisCount;
 double setupBuyPrice;
 double setupSellPrice;
@@ -151,7 +152,7 @@ double sl_b;
 double sl_s;
 int scaling;
 bool tradeComplete;
-input double atrScaling;
+
 
 /*
 void OpenBuyOrder()
