@@ -1,0 +1,162 @@
+using System;
+using cAlgo.API;
+using cAlgo.API.Internals;
+using cAlgo.API.Indicators;
+
+namespace cAlgo.Robots
+{
+    [Robot(AccessRights = AccessRights.None)]
+    public class TitaniumAGBot : Robot
+    {
+        [Parameter("Quantity (Lots)", Group = "Volume", DefaultValue = 0.01, MinValue = 0.01, Step = 0.01)]
+        public double Quantity { get; set; }
+
+        [Parameter("Number of Candles", Group = "Horizontal Lines", DefaultValue = 10, MinValue = 1)]
+        public int NumberOfCandles { get; set; }
+
+        [Parameter("ATR Multiplier", Group = "Horizontal Lines", DefaultValue = 1, MinValue = 0.1, Step = 0.1)]
+        public double AtrMultiplier { get; set; }
+
+        private AverageTrueRange atr;
+        private bool tradeStarted;
+        private int numSidesTested;
+
+        private double highestPrice;
+        private double lowestPrice;
+        private double buyStop;
+        private double sellStop;
+        double currentPrice;
+
+        protected override void OnStart()
+        {
+            // Initialize ATR indicator
+            atr = Indicators.AverageTrueRange(14, MovingAverageType.Simple);
+            tradeStarted = false;
+            numSidesTested = 0;
+
+            // Calculate initial values for horizontal lines
+            CalculateHorizontalLines();
+        }
+
+        protected override void OnTick()
+        {
+            // Check price conditions and set tradeStarted if conditions are met
+            CheckPriceConditions();
+
+            // Update numSidesTested and adjust lot size based on conditions
+            if (tradeStarted)
+            {
+                currentPrice = Bars.ClosePrices.LastValue;
+
+                // Check if price falls below buyStop or goes above highestPrice
+                if (currentPrice < buyStop || currentPrice > highestPrice)
+                {
+                    numSidesTested++;
+                }
+
+                // Check if price falls below lowestPrice or goes above sellStop
+                if (currentPrice < lowestPrice || currentPrice > sellStop)
+                {
+                    numSidesTested++;
+                }
+
+                // Check if numSidesTested is even and adjust lot size
+                if (numSidesTested % 2 == 0)
+                {
+                    Quantity *= 2; // Multiply lot size by 2
+                }
+
+                // Trigger buy trades
+                if (Positions.Count > 0)
+                {
+                    foreach (var position in Positions)
+                        ClosePosition(position);
+                }
+
+                if (currentPrice > highestPrice || currentPrice > sellStop)
+                {
+                    ExecuteMarketOrder(TradeType.Buy, SymbolName, Quantity, "Buy Trade");
+                }
+            }
+            else // If tradeStarted is false, ensure no open positions
+            {
+                if (Positions.Count > 0)
+                {
+                    foreach (var position in Positions)
+                        ClosePosition(position);
+                }
+            }
+
+            // Trigger sell trades
+            if (tradeStarted)
+            {
+                if (Positions.Count > 0)
+                {
+                    foreach (var position in Positions)
+                        ClosePosition(position);
+                }
+
+                if (currentPrice < buyStop || currentPrice < lowestPrice)
+                {
+                    ExecuteMarketOrder(TradeType.Sell, SymbolName, Quantity, "Sell Trade");
+                }
+            }
+            else // If tradeStarted is false, ensure no open positions
+            {
+                if (Positions.Count > 0)
+                {
+                    foreach (var position in Positions)
+                        ClosePosition(position);
+                }
+            }
+        }
+
+        private void CheckPriceConditions()
+        {
+            double currentPrice = Bars.ClosePrices.LastValue;
+            double currentAtr = atr.Result.LastValue;
+
+            // Recalculate horizontal lines based on current price and ATR
+            highestPrice = Bars.HighPrices.Maximum(NumberOfCandles);
+            lowestPrice = Bars.LowPrices.Minimum(NumberOfCandles);
+            buyStop = highestPrice - (currentAtr * AtrMultiplier);
+            sellStop = lowestPrice + (currentAtr * AtrMultiplier);
+
+            // Check conditions for tradeStarted
+            if ((currentPrice > buyStop && currentPrice < highestPrice) ||
+                (currentPrice < sellStop && currentPrice > lowestPrice))
+            {
+                tradeStarted = true;
+            }
+            else
+            {
+                tradeStarted = false;
+            }
+        }
+
+        private void CalculateHorizontalLines()
+        {
+            double currentAtr = atr.Result.LastValue;
+
+            highestPrice = Bars.HighPrices.Maximum(NumberOfCandles);
+            lowestPrice = Bars.LowPrices.Minimum(NumberOfCandles);
+            buyStop = highestPrice - (currentAtr * AtrMultiplier);
+            sellStop = lowestPrice + (currentAtr * AtrMultiplier);
+
+            // Draw horizontal lines on chart
+            Chart.DrawHorizontalLine("HighestPrice", highestPrice, Color.Magenta);
+            Chart.DrawHorizontalLine("LowestPrice", lowestPrice, Color.Magenta);
+            Chart.DrawHorizontalLine("BuyStop", buyStop, Color.Aqua);
+            Chart.DrawHorizontalLine("SellStop", sellStop, Color.Aqua);
+        }
+
+        protected override void OnStop()
+        {
+            // Ensure all positions are closed when cBot is stopped
+            foreach (var position in Positions)
+                ClosePosition(position);
+
+            // Handle cBot stop here 
+        }
+    }
+}
