@@ -26,6 +26,13 @@ namespace cAlgo.Robots
         private double buyStop;
         private double sellStop;
         double currentPrice;
+        
+        double buyPrice;
+        double sellPrice;
+        bool priceSet;
+        
+        bool buyTrade;
+        bool sellTrade;
 
         protected override void OnStart()
         {
@@ -42,73 +49,79 @@ namespace cAlgo.Robots
         {
             // Check price conditions and set tradeStarted if conditions are met
             CheckPriceConditions();
+            
+            currentPrice = Bars.ClosePrices.LastValue;
+            
+            if (currentPrice < highestPrice && currentPrice > buyStop && !priceSet)
+            {
+                buyPrice = highestPrice;
+                sellPrice = buyStop;
+                tradeStarted = true;
+                priceSet = true;
+                
+            }
+            
+             if (currentPrice > lowestPrice && currentPrice < sellStop && !priceSet)
+            {
+                buyPrice = sellStop;
+                sellPrice = lowestPrice;
+                tradeStarted = true;
+                priceSet = true;
+                
+            }
 
             // Update numSidesTested and adjust lot size based on conditions
             if (tradeStarted)
             {
-                currentPrice = Bars.ClosePrices.LastValue;
 
-                // Check if price falls below buyStop or goes above highestPrice
-                if (currentPrice < buyStop || currentPrice > highestPrice)
-                {
-                    numSidesTested++;
-                }
 
-                // Check if price falls below lowestPrice or goes above sellStop
-                if (currentPrice < lowestPrice || currentPrice > sellStop)
-                {
-                    numSidesTested++;
-                }
+                
 
-                // Check if numSidesTested is even and adjust lot size
-                if (numSidesTested % 2 == 0)
+                
+                // buying 
+                if (currentPrice > buyPrice)
                 {
-                    Quantity *= 2; // Multiply lot size by 2
+                    if(!buyTrade)
+                    {
+                        numSidesTested++;
+                        ExecuteMarketOrder(TradeType.Buy, SymbolName, Quantity, "Buy Trade");
+                        // Check if numSidesTested is even and adjust lot size
+                        if (numSidesTested % 2 == 0)
+                        {
+                            Quantity *= 2; // Multiply lot size by 2
+                        }
+                        buyTrade = true;
+                        sellTrade = false;
+                    }
                 }
+                
+                // selling 
+                if (currentPrice < sellPrice)
+                {
+                    if(!sellTrade)
+                    {
+                        numSidesTested++;
+                        ExecuteMarketOrder(TradeType.Sell, SymbolName, Quantity, "Sell Trade");
+                        // Check if numSidesTested is even and adjust lot size
+                        if (numSidesTested % 2 == 0)
+                        {
+                            Quantity *= 2; // Multiply lot size by 2
+                        }
+                        buyTrade = false;
+                        sellTrade = true;
+                    }
+                }
+            
+            
+            
+            
+            
+            
+            } // end of tick
+            
+            
 
-                // Trigger buy trades
-                if (Positions.Count > 0)
-                {
-                    foreach (var position in Positions)
-                        ClosePosition(position);
-                }
-
-                if (currentPrice > highestPrice || currentPrice > sellStop)
-                {
-                    ExecuteMarketOrder(TradeType.Buy, SymbolName, Quantity, "Buy Trade");
-                }
-            }
-            else // If tradeStarted is false, ensure no open positions
-            {
-                if (Positions.Count > 0)
-                {
-                    foreach (var position in Positions)
-                        ClosePosition(position);
-                }
-            }
-
-            // Trigger sell trades
-            if (tradeStarted)
-            {
-                if (Positions.Count > 0)
-                {
-                    foreach (var position in Positions)
-                        ClosePosition(position);
-                }
-
-                if (currentPrice < buyStop || currentPrice < lowestPrice)
-                {
-                    ExecuteMarketOrder(TradeType.Sell, SymbolName, Quantity, "Sell Trade");
-                }
-            }
-            else // If tradeStarted is false, ensure no open positions
-            {
-                if (Positions.Count > 0)
-                {
-                    foreach (var position in Positions)
-                        ClosePosition(position);
-                }
-            }
+            
         }
 
         private void CheckPriceConditions()
