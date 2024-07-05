@@ -84,6 +84,10 @@ namespace cAlgo.Robots
                     if(!buyTrade)
                     {
                         numSidesTested++;
+                        foreach (var position in Positions)
+                        {
+                            ClosePosition(position);
+                        }
                         ExecuteMarketOrder(TradeType.Buy, SymbolName, Quantity, "Buy Trade");
                         // Check if numSidesTested is even and adjust lot size
                         if (numSidesTested % 2 == 0)
@@ -101,6 +105,10 @@ namespace cAlgo.Robots
                     if(!sellTrade)
                     {
                         numSidesTested++;
+                        foreach (var position in Positions)
+                        {
+                            ClosePosition(position);
+                        }
                         ExecuteMarketOrder(TradeType.Sell, SymbolName, Quantity, "Sell Trade");
                         // Check if numSidesTested is even and adjust lot size
                         if (numSidesTested % 2 == 0)
