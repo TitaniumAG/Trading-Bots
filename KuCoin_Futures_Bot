@@ -1,0 +1,139 @@
+import ccxt
+import time
+
+# Replace these with your actual API keys and password
+api_key = '6687364ce5b9dc0001fbb719'
+secret = '5318bcd8-5af3-4165-a445-8cc44274f221'
+password = '07547701518'
+
+# Trade trigger logging
+buyTrade = False
+sellTrade = False
+
+# Initialize the KuCoin Futures exchange object
+exchange = ccxt.kucoinfutures({
+    'apiKey': api_key,
+    'secret': secret,
+    'password': password,
+    'enableRateLimit': True,  # This enables rate limiting, which protects your account
+    'options': {
+        'defaultType': 'future',  # Specify the default market type (spot or future)
+    }
+})
+
+# User-defined input variables
+symbol = 'XBTUSDTM'  # Replace with your desired symbol
+buyPrice = float(input("Enter buy price: "))  # User input for buy price
+sellPrice = float(input("Enter sell price: "))  # User input for sell price
+amount = float(input("Enter amount to trade: "))  # User input for amount to trade
+
+# Function to fetch the current price of a symbol
+def fetch_current_price(symbol):
+    try:
+        ticker = exchange.fetch_ticker(symbol)
+        return ticker['last']  # Last traded price for the symbol
+
+    except ccxt.NetworkError as e:
+        print(f'Network error: {e}')
+
+    except ccxt.ExchangeError as e:
+        print(f'Exchange error: {e}')
+
+    except Exception as e:
+        print(f'Error: {e}')
+    return None
+
+# Function to execute a market buy order
+def execute_market_buy(symbol, amount):
+    try:
+        #order = exchange.create_market_buy_order(symbol, amount=amount)
+        order = exchange.createOrder(symbol, 'market', 'buy', amount, params={'leverage': 125})
+        print(f'Buy order executed for {amount} {symbol}. Order details:', order)
+        return True
+
+    except ccxt.NetworkError as e:
+        print(f'Network error: {e}')
+
+    except ccxt.ExchangeError as e:
+        print(f'Exchange error: {e}')
+
+    except Exception as e:
+        print(f'Error: {e}')
+    return False
+
+# Function to execute a market sell order
+def execute_market_sell(symbol, amount):
+    try:
+        #order = exchange.create_market_sell_order(symbol, amount=amount)
+        order = exchange.createOrder(symbol, 'market', 'sell', amount, params={'leverage': 125})
+        print(f'Sell order executed for {amount} {symbol}. Order details:', order)
+        return True
+
+    except ccxt.NetworkError as e:
+        print(f'Network error: {e}')
+
+    except ccxt.ExchangeError as e:
+        print(f'Exchange error: {e}')
+
+    except Exception as e:
+        print(f'Error: {e}')
+    return False
+
+# Function to close all open positions at market price
+def close_all_positions():
+    try:
+        positions = exchange.fetch_positions()
+
+        if not positions:
+            print('No open positions to close.')
+            return
+
+        print(f'Closing {len(positions)} positions...')
+
+        for position in positions:
+            symbol = position['symbol']
+            amount = position['positionAmt']
+            
+            # Execute market sell order to close the position
+            order = exchange.create_market_sell_order(symbol, amount=amount)
+            print(f'Closed position for {symbol} with amount {amount}. Order details:', order)
+
+        print('All positions closed.')
+
+    except ccxt.NetworkError as e:
+        print(f'Network error: {e}')
+
+    except ccxt.ExchangeError as e:
+        print(f'Exchange error: {e}')
+
+    except Exception as e:
+        print(f'Error: {e}')
+
+# Main loop to fetch price and execute trades based on user-defined conditions
+while True:
+    current_price = fetch_current_price(symbol)
+
+    if current_price is not None:
+        print(f'Current price of {symbol}: {current_price}')
+
+        # Check buy condition
+        if current_price > buyPrice and not buyTrade:
+            close_all_positions()
+            execute_market_buy(symbol, amount)
+            sellTrade = False
+            buyTrade = True
+
+        # Check sell condition
+        if current_price < sellPrice and not sellTrade:
+            close_all_positions()
+            execute_market_sell(symbol, amount)
+            buyTrade = False
+            sellTrade = True
+
+        # Example condition to close all positions at market value
+        if current_price == 0:  # Replace with your condition to trigger closing all positions
+            close_all_positions()
+            buyTrade = False
+            sellTrade = False
+
+    time.sleep(0.5)  # Sleep for 0.5 seconds before fetching price again
