@@ -1,6 +1,6 @@
 import ccxt
 import time
-
+# https://www.kucoin.com/futures/contract/detail/ETHUSDTM
 # Replace these with your actual API keys and password
 api_key = '6687364ce5b9dc0001fbb719'
 secret = '5318bcd8-5af3-4165-a445-8cc44274f221'
