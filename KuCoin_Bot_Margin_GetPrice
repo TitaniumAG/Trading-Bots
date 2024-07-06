@@ -1,0 +1,53 @@
+import ccxt
+
+# Replace these with your actual API keys and password
+api_key = '6687364ce5b9dc0001fbb719'
+secret = '5318bcd8-5af3-4165-a445-8cc44274f221'
+password = '07547701518'
+
+# Initialize the KuCoin Futures exchange object
+exchange = ccxt.kucoinfutures({
+    'apiKey': api_key,
+    'secret': secret,
+    'password': password,
+    'enableRateLimit': True,  # This enables rate limiting, which protects your account
+})
+
+try:
+    # Load your account balances
+    exchange.load_markets()
+
+    # Fetch cross margin balance
+    cross_margin_balances = exchange.private_get_margin_account()  # Check KuCoin's API docs for exact endpoint
+
+    # Print the response to understand its structure
+    print(cross_margin_balances)
+
+    # Example of extracting USDT balance from cross margin account based on assumed structure
+    usdt_balance = None
+    for balance in cross_margin_balances['data']['accounts']:
+        # Adjust based on actual structure
+        if balance['currency'] == 'USDT':  # Check for available balance in the response structure
+            usdt_balance = balance['availableBalance']  # Adjust this field as per actual structure
+            break
+
+    if usdt_balance is not None:
+        print(f'Your KuCoin cross margin account balance is: {usdt_balance} USDT')
+    else:
+        print('USDT balance not found in cross margin account.')
+
+    # Fetch the price of an asset (e.g., BTC/USDT)
+    symbol = 'XBTUSDTM'
+    ticker = exchange.fetch_ticker(symbol)
+    price = ticker['last']  # Last traded price for the symbol
+
+    print(f'Current price of {symbol}: {price}')
+
+except ccxt.NetworkError as e:
+    print(f'Network error: {e}')
+
+except ccxt.ExchangeError as e:
+    print(f'Exchange error: {e}')
+
+except Exception as e:
+    print(f'Error: {e}')
