@@ -7,8 +7,10 @@ secret = '5318bcd8-5af3-4165-a445-8cc44274f221'
 password = '07547701518'
 
 # Trade trigger logging
+canTrade = False
 buyTrade = False
 sellTrade = False
+leverage = 64
 
 # Initialize the KuCoin Futures exchange object
 exchange = ccxt.kucoinfutures({
@@ -22,7 +24,8 @@ exchange = ccxt.kucoinfutures({
 })
 
 # User-defined input variables
-symbol = 'XBTUSDTM'  # Replace with your desired symbol
+#symbol = 'XBTUSDTM'  # Replace with your desired symbol
+symbol = 'ETHUSDTM'
 buyPrice = float(input("Enter buy price: "))  # User input for buy price
 sellPrice = float(input("Enter sell price: "))  # User input for sell price
 amount = float(input("Enter amount to trade: "))  # User input for amount to trade
@@ -47,7 +50,7 @@ def fetch_current_price(symbol):
 def execute_market_buy(symbol, amount):
     try:
         #order = exchange.create_market_buy_order(symbol, amount=amount)
-        order = exchange.createOrder(symbol, 'market', 'buy', amount, params={'leverage': 125})
+        order = exchange.createOrder(symbol, 'market', 'buy', amount, params={'leverage': leverage})
         print(f'Buy order executed for {amount} {symbol}. Order details:', order)
         return True
 
@@ -65,7 +68,7 @@ def execute_market_buy(symbol, amount):
 def execute_market_sell(symbol, amount):
     try:
         #order = exchange.create_market_sell_order(symbol, amount=amount)
-        order = exchange.createOrder(symbol, 'market', 'sell', amount, params={'leverage': 125})
+        order = exchange.createOrder(symbol, 'market', 'sell', amount, params={'leverage': leverage})
         print(f'Sell order executed for {amount} {symbol}. Order details:', order)
         return True
 
@@ -113,18 +116,21 @@ def close_all_positions():
 while True:
     current_price = fetch_current_price(symbol)
 
+    if current_price < buyPrice and current_price > sellPrice:
+        canTrade = True
+
     if current_price is not None:
         print(f'Current price of {symbol}: {current_price}')
 
         # Check buy condition
-        if current_price > buyPrice and not buyTrade:
+        if canTrade and current_price > buyPrice and not buyTrade:
             close_all_positions()
             execute_market_buy(symbol, amount)
             sellTrade = False
             buyTrade = True
 
         # Check sell condition
-        if current_price < sellPrice and not sellTrade:
+        if canTrade and current_price < sellPrice and not sellTrade:
             close_all_positions()
             execute_market_sell(symbol, amount)
             buyTrade = False
