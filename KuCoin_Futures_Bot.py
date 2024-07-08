@@ -2,6 +2,7 @@ import ccxt
 import time
 import logging
 import creds
+import numpy as np
 
 # Replace these with your actual API keys and password
 api_key = creds.api_key
@@ -22,7 +23,7 @@ buyTrade = False
 sellTrade = False
 leverage = 64
 numSidesTested = 0
-posCount = 2
+priceSet = False
 
 # Initialize the KuCoin Futures exchange object
 exchange = ccxt.kucoinfutures({
@@ -35,11 +36,65 @@ exchange = ccxt.kucoinfutures({
     }
 })
 
+
+
+def get_high_low_and_atr(symbol, timeframe, n):
+    try:
+        # Load markets
+        exchange.load_markets()
+
+        # Fetch OHLCV data
+        ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=n + 1)  # Fetch one more candle for accurate ATR calculation
+
+        # Extract the High, Low, and Close prices from the OHLCV data
+        highs = [candle[2] for candle in ohlcv]  # High prices
+        lows = [candle[3] for candle in ohlcv]   # Low prices
+        closes = [candle[4] for candle in ohlcv] # Close prices
+
+        # Find the highest and lowest prices in the range
+        highest_price = max(highs[-n:])
+        lowest_price = min(lows[-n:])
+
+        # Calculate True Range (TR)
+        trs = [highs[i] - lows[i] for i in range(1, len(ohlcv))]
+        trs += [abs(highs[i] - closes[i-1]) for i in range(1, len(ohlcv))]
+        trs += [abs(lows[i] - closes[i-1]) for i in range(1, len(ohlcv))]
+
+        # Calculate ATR
+        atr = np.mean(trs[-n:])
+
+        # calculate stops
+        highest_stop = highest_price - (atr*3)
+        lowest_stop = lowest_price + (atr*3)
+
+
+        return highest_price, highest_stop, lowest_price, lowest_stop, atr
+
+    except ccxt.NetworkError as e:
+        print(f'Network error: {e}')
+        return None, None, None
+
+    except ccxt.ExchangeError as e:
+        print(f'Exchange error: {e}')
+        return None, None, None
+
+    except Exception as e:
+        print(f'Error: {e}')
+        return None, None, None
+
+
 # User-defined input variables
+
+# User input
 symbol = 'ETHUSDTM'
-buyPrice = float(input("Enter buy price: "))  # User input for buy price
-sellPrice = float(input("Enter sell price: "))  # User input for sell price
-amount = float(input("Enter amount to trade: "))  # User input for amount to trade
+timeframe = '1m'  # You can change this to any valid timeframe, e.g., '1m', '5m', '1d'
+n = int(input("Enter the number of candles: "))
+highest, highest_stop, lowest, lowest_stop, atr = get_high_low_and_atr(symbol, timeframe, n)
+
+
+buyPrice = 0  # User input for buy price
+sellPrice = 0  # User input for sell price
+amount = 1  # User input for amount to trade
 
 # Function to fetch the current price of a symbol
 def fetch_current_price(symbol):
@@ -112,44 +167,66 @@ def close_all_positions():
     except Exception as e:
         log(f'Error: {e}')
 
-# Main loop to fetch price and execute trades based on user-defined conditions
-while True:
-    current_price = fetch_current_price(symbol)
 
-    if current_price is not None:
-        log(f'Current price of {symbol}: {current_price}')
 
-        if current_price < buyPrice and current_price > sellPrice:
-            canTrade = True
 
-        # Check buy condition
-        if canTrade and current_price > buyPrice and not buyTrade:
-            close_all_positions()                
-            time.sleep(2)  # Delay after closing positions before opening a new buy position
-            numSidesTested+=1
-            if posCount < 3:
-                # Open a new buy position
-                execute_market_buy(symbol, amount)
-                if numSidesTested > 1:
-                    time.sleep(3)
+if highest is not None and lowest is not None and atr is not None:
+    print(f'Highest price over the last {n} candles: {highest}')
+    print(f'Highest stop price over the last {n} candles: {highest_stop}')
+    print(f'Lowest price over the last {n} candles: {lowest}')
+    print(f'Lowest stop price over the last {n} candles: {lowest_stop}')
+    print(f'ATR over the last {n} candles: {atr}')
+    
+
+    # Main loop to fetch price and execute trades based on user-defined conditions
+    while True:
+        current_price = fetch_current_price(symbol)
+
+        if current_price is not None:
+            log(f'Current price of {symbol}: {current_price}')
+
+            # checks to prime trade high
+            if not priceSet and current_price < highest and current_price > highest_stop:
+                buyPrice = highest
+                sellPrice = highest_stop
+                canTrade = True
+                priceSet = True
+
+            # checks to prime trade low
+            if not priceSet and current_price > lowest and current_price < lowest_stop:
+                buyPrice = lowest_stop
+                sellPrice = lowest
+                canTrade = True
+                priceSet = True
+
+            # Check buy condition
+            if canTrade and current_price > buyPrice and not buyTrade:
+                close_all_positions()                
+                time.sleep(2)  # Delay after closing positions before opening a new buy position
+                numSidesTested+=1
+                if posCount < 3:
+                    # Open a new buy position
                     execute_market_buy(symbol, amount)
-                sellTrade = False
-                buyTrade = True
-                log('Buy trade executed.')
+                    if numSidesTested > 1:
+                        time.sleep(3)
+                        execute_market_buy(symbol, amount)
+                    sellTrade = False
+                    buyTrade = True
+                    log('Buy trade executed.')
 
-        # Check sell condition
-        if canTrade and current_price < sellPrice and not sellTrade:
-            close_all_positions()
-            time.sleep(2)  # Delay after closing positions before opening a new sell position
-            numSidesTested+=1
-            if posCount < 3:
-                # Open a new sell position
-                execute_market_sell(symbol, amount)
-                if numSidesTested > 1:
-                    time.sleep(3)
+            # Check sell condition
+            if canTrade and current_price < sellPrice and not sellTrade:
+                close_all_positions()
+                time.sleep(2)  # Delay after closing positions before opening a new sell position
+                numSidesTested+=1
+                if posCount < 3:
+                    # Open a new sell position
                     execute_market_sell(symbol, amount)
-                buyTrade = False
-                sellTrade = True
-                log('Sell trade executed.')
+                    if numSidesTested > 1:
+                        time.sleep(3)
+                        execute_market_sell(symbol, amount)
+                    buyTrade = False
+                    sellTrade = True
+                    log('Sell trade executed.')
 
-    time.sleep(0.5)  # Sleep for 0.5 seconds before fetching price again
+        time.sleep(0.5)  # Sleep for 0.5 seconds before fetching price again
