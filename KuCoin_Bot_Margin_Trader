@@ -2,9 +2,9 @@ import ccxt
 import time
 
 # Replace these with your actual API keys and password
-api_key = '6687364ce5b9dc0001fbb719'
-secret = '5318bcd8-5af3-4165-a445-8cc44274f221'
-password = '07547701518'
+api_key = creds.api_key
+secret = creds.secret
+password = creds.password
 
 # Trade trigger logging
 buyTrade = False
