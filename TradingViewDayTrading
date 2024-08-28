@@ -28,28 +28,28 @@ var line atrLineLow = na
 
 // Draw or update the highest high line
 if (na(highestLine))  // If the line hasn't been drawn yet
-    highestLine := line.new(bar_index - x, highestHigh, bar_index, highestHigh, color=color.red, width=2)
+    highestLine := line.new(bar_index - x, highestHigh, bar_index, highestHigh, color=#ff00f7, width=2)
 else
     line.set_xy1(highestLine, bar_index - x, highestHigh)
     line.set_xy2(highestLine, bar_index, highestHigh)
 
 // Draw or update the ATR-adjusted line for the highest high
 if (na(atrLineHigh))
-    atrLineHigh := line.new(bar_index - x, secondLineHigh, bar_index, secondLineHigh, color=color.blue, width=2)
+    atrLineHigh := line.new(bar_index - x, secondLineHigh, bar_index, secondLineHigh, color=#00fff7, width=2)
 else
     line.set_xy1(atrLineHigh, bar_index - x, secondLineHigh)
     line.set_xy2(atrLineHigh, bar_index, secondLineHigh)
 
 // Draw or update the lowest low line
 if (na(lowestLine))  // If the line hasn't been drawn yet
-    lowestLine := line.new(bar_index - x, lowestLow, bar_index, lowestLow, color=color.green, width=2)
+    lowestLine := line.new(bar_index - x, lowestLow, bar_index, lowestLow, color=#ff00f7, width=2)
 else
     line.set_xy1(lowestLine, bar_index - x, lowestLow)
     line.set_xy2(lowestLine, bar_index, lowestLow)
 
 // Draw or update the ATR-adjusted line for the lowest low
 if (na(atrLineLow))
-    atrLineLow := line.new(bar_index - x, secondLineLow, bar_index, secondLineLow, color=color.purple, width=2)
+    atrLineLow := line.new(bar_index - x, secondLineLow, bar_index, secondLineLow, color=#00fff7, width=2)
 else
     line.set_xy1(atrLineLow, bar_index - x, secondLineLow)
     line.set_xy2(atrLineLow, bar_index, secondLineLow)
