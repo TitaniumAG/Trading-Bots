@@ -504,7 +504,7 @@ if(currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
          
-         lotSize+=OffsetRate;         
+         lotSize*=OffsetRate;         
          }
          
          
@@ -538,7 +538,7 @@ if(currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {
          
-         lotSize+=OffsetRate;
+         lotSize*=OffsetRate;
          }
          
          
