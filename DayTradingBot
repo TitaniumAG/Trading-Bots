@@ -70,7 +70,6 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-input int positionCount;
 input double defaultLotSize;
 double lotSize;
 double maxTrendingDuration;
@@ -140,7 +139,7 @@ double priceDeviation;
 bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
-input double OffsetRate;
+input double Multiplier;
 input double atrScaling;
 input int candleAnalysisCount;
 double setupBuyPrice;
@@ -490,21 +489,19 @@ if(currentPrice < sellStopPrice)
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
-         for(int i=0; i<positionCount; i++)
-         {
+        
          trade.PositionClose(Symbol());
-         }
-         for(int i=0; i<positionCount; i++)
-         {
+         
+         
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         }
+         
          
          
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
          
-         lotSize*=OffsetRate;         
+         lotSize*=Multiplier;         
          }
          
          
@@ -525,20 +522,18 @@ if(currentPrice < sellStopPrice)
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
-         for(int i=0; i<positionCount; i++)
-         {
+         
          trade.PositionClose(Symbol());
-         }
-         for(int i=0; i<positionCount; i++)
-         {
+         
+         
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         }
+         
          
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {
          
-         lotSize*=OffsetRate;
+         lotSize*=Multiplier;
          }
          
          
