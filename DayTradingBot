@@ -555,7 +555,7 @@ debt = MathAbs(lastPL);
     
      
      // closing trades #3333
-     if(PL > 1000)
+     if (PL > (debt + profitTarget))
      {
       tradePrimed = false;
       hedgeBuy = false;  
@@ -618,13 +618,6 @@ debt = MathAbs(lastPL);
       tradeComplete = true;
       priceDataSet = false;
       tradeStarted = false;
-      }
-      
-      
-      // Alerts
-      if (PL > (debt + profitTarget))
-      {
-      Alert("Minimum profit target reached!");
       }
       
       /*
