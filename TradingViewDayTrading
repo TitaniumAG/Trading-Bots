@@ -70,6 +70,7 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
+input double currentBalance;
 input double profitTarget;
 input double defaultLotSize;
 double lotSize;
@@ -155,8 +156,7 @@ double sl_s;
 int scaling;
 bool tradeComplete;
 double capturedATRValue;
-bool balanceSet;
-double Balance;
+
 
 /*
 void OpenBuyOrder()
@@ -276,7 +276,6 @@ int OnInit()
    lotSize = defaultLotSize;
    scaling = 2;
    Multiplier = 3;
-   Balance = 0;
 
 
    return(INIT_SUCCEEDED);
@@ -351,14 +350,14 @@ void OnTick()
    currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
    double Equity=AccountInfoDouble(ACCOUNT_EQUITY);
-   double PL = (Equity - Balance);
+   double Balance=AccountInfoDouble(ACCOUNT_BALANCE);
+   double PL = (Equity - currentBalance);
    
    
-   if (!balanceSet)
-   {
-   Balance=AccountInfoDouble(ACCOUNT_BALANCE);
-   balanceSet = true;
-   }
+   
+   
+   
+   
 
 
 // we calculate the ask price
