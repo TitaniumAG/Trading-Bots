@@ -586,6 +586,9 @@ debt = MathAbs(lastPL);
       
       
       
+      
+      
+      
      // closing trades stop loss #4444
      if(numSidesTested == 10)
      {
@@ -614,6 +617,13 @@ debt = MathAbs(lastPL);
       tradeComplete = true;
       priceDataSet = false;
       tradeStarted = false;
+      }
+      
+      
+      // Alerts
+      if (PL > (debt + 10))
+      {
+      Alert("Minimum profit target reached!");
       }
       
       /*
