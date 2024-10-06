@@ -139,7 +139,7 @@ double priceDeviation;
 bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
-input double Multiplier;
+double Multiplier;
 input double atrScaling;
 input int candleAnalysisCount;
 double setupBuyPrice;
@@ -272,7 +272,7 @@ int OnInit()
    interest = 5;
    lotSize = defaultLotSize;
    scaling = 2;
-   
+   Multiplier = 3;
 
 
 
