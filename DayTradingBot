@@ -70,6 +70,7 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
+input double profitTarget;
 input double defaultLotSize;
 double lotSize;
 double maxTrendingDuration;
@@ -140,7 +141,7 @@ bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
 double Multiplier;
-input double atrScaling;
+input double reversalScale;
 input int candleAnalysisCount;
 double setupBuyPrice;
 double setupSellPrice;
@@ -412,8 +413,8 @@ oldOpenPrice = openPrice;
 setupBuyPrice = priceLevel100;
 setupSellPrice = priceLevel0;
 capturedATRValue = myAtrValue;
-buyStopPrice = (priceLevel100 - (myAtrValue*atrScaling));
-sellStopPrice = (priceLevel0 + (myAtrValue*atrScaling));
+buyStopPrice = (priceLevel100 - (myAtrValue*reversalScale));
+sellStopPrice = (priceLevel0 + (myAtrValue*reversalScale));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
@@ -443,8 +444,8 @@ if(priceDataSet && !tradeStarted && awaitEntry < 1)
 {
 
 // continuous price updates so we can edit on the fly
-buyStopPrice = (setupBuyPrice - (capturedATRValue*atrScaling));
-sellStopPrice = (setupSellPrice + (capturedATRValue*atrScaling));
+buyStopPrice = (setupBuyPrice - (capturedATRValue*reversalScale));
+sellStopPrice = (setupSellPrice + (capturedATRValue*reversalScale));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
@@ -621,7 +622,7 @@ debt = MathAbs(lastPL);
       
       
       // Alerts
-      if (PL > (debt + 10))
+      if (PL > (debt + profitTarget))
       {
       Alert("Minimum profit target reached!");
       }
