@@ -70,7 +70,6 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-input double currentBalance;
 input double profitTarget;
 input double defaultLotSize;
 double lotSize;
@@ -351,7 +350,7 @@ void OnTick()
    double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
    double Equity=AccountInfoDouble(ACCOUNT_EQUITY);
    double Balance=AccountInfoDouble(ACCOUNT_BALANCE);
-   double PL = (Equity - currentBalance);
+   double PL = (Equity - Balance);
    
    
    
