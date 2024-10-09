@@ -72,6 +72,7 @@ double priceMovePercentage;
 int numSidesTested;
 input double profitTarget;
 input double defaultLotSize;
+input double lotScalingOffset;
 double lotSize;
 double maxTrendingDuration;
 double tradingFrequency;
@@ -509,7 +510,7 @@ if(currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
          
-         lotSize*=Multiplier;         
+         lotSize+=lotScalingOffset;         
          }
          
          
@@ -541,7 +542,7 @@ if(currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {
          
-         lotSize*=Multiplier;
+         lotSize+=lotScalingOffset;
          }
          
          
@@ -597,35 +598,6 @@ debt = MathAbs(lastPL);
       
       
       
-     // closing trades stop loss #4444
-     if(numSidesTested == 10)
-     {
-      tradePrimed = false;
-      hedgeBuy = false;  
-      hedgeSell = false;
-      trade.PositionClose(Symbol());      
-      posCount = 1;
-      lastPL=0;
-      lotSize = defaultLotSize;
-      debt = 0;
-      numSidesTested = 0;
-      awaitEntry = freqDelay;
-      numIncreaseLots = 0;
-      rangeTestCount = 0;
-      primedPrice = 1;
-      maPrice = -1;
-      buyPriceSet = false;
-      sellPriceSet = false;
-      seekingProfit = false;
-      timeInTrade = 0;
-      trailingStop = defaultTrailingStop;
-      buyPrice = 100000;
-      sellPrice = 0;
-      tradeAction = "null";
-      tradeComplete = true;
-      priceDataSet = false;
-      tradeStarted = false;
-      }
       
       /*
       //cancelling trades
