@@ -157,6 +157,7 @@ int scaling;
 bool tradeComplete;
 double capturedATRValue;
 bool isDeviation;
+static int ticketStack[];
 
 
 /*
@@ -500,10 +501,13 @@ if(currentPrice < sellStopPrice)
          lastPL-=PL;
          
          
-         trade.PositionClose(Symbol());
+         //trade.PositionClose(Symbol());
          
          
-         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         int tradeTicket = trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
+         ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         Comment(tradeTicket);
          
          
          
@@ -534,12 +538,15 @@ if(currentPrice < sellStopPrice)
          lastPL-=PL;
          
          
-         trade.PositionClose(Symbol());
+         //trade.PositionClose(Symbol());
          
          
          
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         
+         ulong tradeTicket = trade.ResultOrder();
+         ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
+         ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         printf("Ticket stack is: " + IntegerToString(tradeTicket));         
          
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
@@ -602,7 +609,12 @@ debt = MathAbs(lastPL);
      {
      if(currentPrice < (sellPrice - (capturedATRValue*reversalScale)) || currentPrice > (buyPrice + (capturedATRValue*reversalScale)))
      {
-     trade.PositionClose(Symbol());
+     //trade.PositionClose(Symbol());
+     
+     for (int i = 0; i < ArraySize(ticketStack); i++)
+     {
+     trade.PositionClose(ticketStack[i],-1);
+     }
      }
      }
       
