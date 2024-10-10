@@ -503,11 +503,15 @@ if(currentPrice < sellStopPrice)
          
          //trade.PositionClose(Symbol());
          
-         
-         int tradeTicket = trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         for (int i = 0; i < ArraySize(ticketStack); i++)
+         {
+         trade.PositionClose(ticketStack[i],-1);
+         }
+         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
-         Comment(tradeTicket);
+            
          
          
          
@@ -541,12 +545,15 @@ if(currentPrice < sellStopPrice)
          //trade.PositionClose(Symbol());
          
          
-         
+         for (int i = 0; i < ArraySize(ticketStack); i++)
+         {
+         trade.PositionClose(ticketStack[i],-1);
+         }
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
-         printf("Ticket stack is: " + IntegerToString(tradeTicket));         
+                  
          
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
