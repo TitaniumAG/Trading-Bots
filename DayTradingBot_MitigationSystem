@@ -70,7 +70,6 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-input double profitTarget;
 input double defaultLotSize;
 input double lotScalingOffset;
 double lotSize;
@@ -567,7 +566,7 @@ debt = MathAbs(lastPL);
     
      
      // closing trades #3333
-     if (PL > (debt + profitTarget))
+     if (PL > 100000)
      {
       tradePrimed = false;
       hedgeBuy = false;  
