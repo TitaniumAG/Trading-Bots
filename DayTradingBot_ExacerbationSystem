@@ -157,6 +157,7 @@ double sl_s;
 int scaling;
 bool tradeComplete;
 double capturedATRValue;
+static int ticketStack[];
 
 
 /*
@@ -502,7 +503,14 @@ if(currentPrice < sellStopPrice)
          trade.PositionClose(Symbol());
          
          
+         for (int i = 0; i < ArraySize(ticketStack); i++)
+         {
+         trade.PositionClose(ticketStack[i],-1);
+         }
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         ulong tradeTicket = trade.ResultOrder();
+         ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
+         ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          
          
          
@@ -535,7 +543,14 @@ if(currentPrice < sellStopPrice)
          trade.PositionClose(Symbol());
          
          
+         for (int i = 0; i < ArraySize(ticketStack); i++)
+         {
+         trade.PositionClose(ticketStack[i],-1);
+         }
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         ulong tradeTicket = trade.ResultOrder();
+         ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
+         ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          
          
          
@@ -729,4 +744,4 @@ debt = MathAbs(lastPL);
 
 }
   
-//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+MT5|Expert!40
