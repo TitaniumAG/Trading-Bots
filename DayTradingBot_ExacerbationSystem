@@ -500,7 +500,7 @@ if(currentPrice < sellStopPrice)
          numIncreaseLots++;
          lastPL-=PL;
         
-         trade.PositionClose(Symbol());
+         //trade.PositionClose(Symbol());
          
          
          for (int i = 0; i < ArraySize(ticketStack); i++)
@@ -540,7 +540,7 @@ if(currentPrice < sellStopPrice)
          numIncreaseLots++;
          lastPL-=PL;
          
-         trade.PositionClose(Symbol());
+         //trade.PositionClose(Symbol());
          
          
          for (int i = 0; i < ArraySize(ticketStack); i++)
