@@ -545,7 +545,7 @@ if(!analysing && currentPrice < sellStopPrice)
              
      }
 // Buying
-   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
+   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted)
      {
          
          
@@ -661,7 +661,7 @@ debt = MathAbs(lastPL);
       buyPrice = 100000;
       sellPrice = 0;
       tradeAction = "null";
-      tradeComplete = true;
+      tradeComplete = false;
       priceDataSet = false;
       tradeStarted = false;
       }
