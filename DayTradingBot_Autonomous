@@ -661,7 +661,7 @@ debt = MathAbs(lastPL);
       buyPrice = 100000;
       sellPrice = 0;
       tradeAction = "null";
-      tradeComplete = false;
+      tradeComplete = true;
       priceDataSet = false;
       tradeStarted = false;
       }
