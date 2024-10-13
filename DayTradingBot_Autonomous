@@ -160,7 +160,7 @@ bool tradeComplete;
 double capturedATRValue;
 static int ticketStack[];
 bool analysing;
-
+double profitTargetShadow;
 
 /*
 void OpenBuyOrder()
@@ -281,6 +281,7 @@ int OnInit()
    scaling = 2;
    Multiplier = 3;
    analysing = false;
+   profitTargetShadow = profitTarget;
 
 
    return(INIT_SUCCEEDED);
@@ -532,7 +533,8 @@ if(!analysing && currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
          
-         lotSize+=lotScalingOffset;         
+         lotSize+=lotScalingOffset;
+         profitTargetShadow-=1;         
          }
          
          
@@ -580,6 +582,7 @@ if(!analysing && currentPrice < sellStopPrice)
          {
          
          lotSize+=lotScalingOffset;
+         profitTargetShadow-=1;
          }
          
          
@@ -636,7 +639,7 @@ debt = MathAbs(lastPL);
       
       
         // closing trades #3333
-     if (PL > (debt + profitTarget))
+     if (PL > (debt + profitTargetShadow))
      {
       analysing = true;
       tradePrimed = false;
@@ -664,6 +667,7 @@ debt = MathAbs(lastPL);
       tradeComplete = true;
       priceDataSet = false;
       tradeStarted = false;
+      profitTargetShadow = profitTarget;
       }
       
       
