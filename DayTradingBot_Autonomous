@@ -71,6 +71,7 @@ double priceRange;
 double priceMovePercentage;
 int numSidesTested;
 input double profitTarget;
+input int positionCount;
 input double defaultLotSize;
 input double lotScalingOffset;
 double lotSize;
@@ -505,9 +506,16 @@ if(!analysing && currentPrice < sellStopPrice)
          numIncreaseLots++;
          lastPL-=PL;
         
-         //trade.PositionClose(Symbol());
+         for(int i = 0; i < positionCount; i++)
+         {
+         trade.PositionClose(Symbol()); 
+         }
+         for(int i = 0; i < positionCount; i++)
+         {
+         trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         }
          
-         
+         /* specific close only
          for (int i = 0; i < ArraySize(ticketStack); i++)
          {
          trade.PositionClose(ticketStack[i],-1);
@@ -516,6 +524,7 @@ if(!analysing && currentPrice < sellStopPrice)
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         */
          
          
          
@@ -545,9 +554,16 @@ if(!analysing && currentPrice < sellStopPrice)
          numIncreaseLots++;
          lastPL-=PL;
          
-         //trade.PositionClose(Symbol());
+         for(int i = 0; i < positionCount; i++)
+         {
+         trade.PositionClose(Symbol()); 
+         }
+         for(int i = 0; i < positionCount; i++)
+         {
+         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         }
          
-         
+         /* specific close only
          for (int i = 0; i < ArraySize(ticketStack); i++)
          {
          trade.PositionClose(ticketStack[i],-1);
@@ -556,6 +572,7 @@ if(!analysing && currentPrice < sellStopPrice)
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         */
          
          
          
@@ -589,7 +606,10 @@ debt = MathAbs(lastPL);
       tradePrimed = false;
       hedgeBuy = false;  
       hedgeSell = false;
-      trade.PositionClose(Symbol());      
+      for(int i = 0; i < positionCount; i++)
+      {
+      trade.PositionClose(Symbol()); 
+      }           
       posCount = 1;
       lastPL=0;
       lotSize = defaultLotSize;
