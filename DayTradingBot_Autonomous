@@ -663,7 +663,7 @@ debt = MathAbs(lastPL);
 
       if(!lossComplete && numSidesTested > 0 && numSidesTested % 3 == 0)
       {
-      lotSize*=lotScalingOffset;
+      lotSize+=lotScalingOffset;
       analysing = true;
       tradePrimed = false;
       hedgeBuy = false;  
