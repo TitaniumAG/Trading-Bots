@@ -157,6 +157,7 @@ double sl_b;
 double sl_s;
 int scaling;
 bool tradeComplete;
+bool lossComplete;
 double capturedATRValue;
 static int ticketStack[];
 bool analysing;
@@ -272,6 +273,7 @@ int OnInit()
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    maxAtr = 0;
    tradeComplete = false;
+   lossComplete = false;
    
    
    currentSymbol = Symbol();
@@ -623,11 +625,46 @@ debt = MathAbs(lastPL);
       priceDataSet = false;
       tradeStarted = false;
       }
+      
+      
+        // closing trades #3333
+     if (lossComplete && currentPrice > (sellStopPrice + (capturedATRValue * reversalScale / 2)) && currentPrice < (buyStopPrice - (capturedATRValue * reversalScale / 2)))
+     {
+      analysing = false;
+      tradePrimed = false;
+      hedgeBuy = false;  
+      hedgeSell = false;
+      for(int i = 0; i < positionCount; i++)
+      {
+      trade.PositionClose(Symbol()); 
+      }           
+      posCount = 1;
+      lastPL=0;
+      
+      
+      numSidesTested = 0;
+      awaitEntry = 0;
+      numIncreaseLots = 0;
+      rangeTestCount = 0;
+      primedPrice = 1;
+      maPrice = -1;
+      buyPriceSet = false;
+      sellPriceSet = false;
+      seekingProfit = false;
+      timeInTrade = 0;
+      trailingStop = defaultTrailingStop;
+      buyPrice = 100000;
+      sellPrice = 0;
+      tradeAction = "null";
+      tradeComplete = false;
+      priceDataSet = false;
+      tradeStarted = false;
+      }
 
 
       if(numSidesTested > 0 && numSidesTested % 3 == 0)
          {
-         
+         lastPL-=PL;
          lotSize*=lotScalingOffset;
          analysing = true;
          tradePrimed = false;
@@ -647,7 +684,7 @@ debt = MathAbs(lastPL);
          buyPrice = 100000;
          sellPrice = 0;
          tradeAction = "null";
-         tradeComplete = true;
+         lossComplete = true;
          priceDataSet = false;
          tradeStarted = false;
          profitTargetShadow = profitTarget;
