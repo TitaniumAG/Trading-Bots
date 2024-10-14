@@ -604,10 +604,12 @@ debt = MathAbs(lastPL);
       trade.PositionClose(Symbol()); 
       }           
       posCount = 1;
+      if(!lossComplete){
       lastPL=0;
       lotSize = defaultLotSize;
       debt = 0;
       numSidesTested = 0;
+      }
       awaitEntry = 0;
       numIncreaseLots = 0;
       rangeTestCount = 0;
@@ -639,10 +641,6 @@ debt = MathAbs(lastPL);
       trade.PositionClose(Symbol()); 
       }           
       posCount = 1;
-      lastPL=0;
-      
-      
-      numSidesTested = 0;
       awaitEntry = 0;
       numIncreaseLots = 0;
       rangeTestCount = 0;
@@ -659,35 +657,39 @@ debt = MathAbs(lastPL);
       tradeComplete = false;
       priceDataSet = false;
       tradeStarted = false;
+      lossComplete = false;
       }
 
 
-      if(numSidesTested > 0 && numSidesTested % 3 == 0)
-         {
-         lastPL-=PL;
-         lotSize*=lotScalingOffset;
-         analysing = true;
-         tradePrimed = false;
-         hedgeBuy = false;  
-         hedgeSell = false;
-         trade.PositionClose(Symbol());          
-         awaitEntry = 0;
-         numIncreaseLots = 0;
-         rangeTestCount = 0;
-         primedPrice = 1;
-         maPrice = -1;
-         buyPriceSet = false;
-         sellPriceSet = false;
-         seekingProfit = false;
-         timeInTrade = 0;
-         trailingStop = defaultTrailingStop;
-         buyPrice = 100000;
-         sellPrice = 0;
-         tradeAction = "null";
-         lossComplete = true;
-         priceDataSet = false;
-         tradeStarted = false;
-         profitTargetShadow = profitTarget;
+      if(!lossComplete && numSidesTested > 0 && numSidesTested % 3 == 0)
+      {
+      lotSize*=lotScalingOffset;
+      analysing = true;
+      tradePrimed = false;
+      hedgeBuy = false;  
+      hedgeSell = false;
+      trade.PositionClose(Symbol());      
+      posCount = 1;
+      lastPL-=PL;            
+      numSidesTested = 0;
+      awaitEntry = 0;
+      numIncreaseLots = 0;
+      rangeTestCount = 0;
+      primedPrice = 1;
+      maPrice = -1;
+      buyPriceSet = false;
+      sellPriceSet = false;
+      seekingProfit = false;
+      timeInTrade = 0;
+      trailingStop = defaultTrailingStop;
+      buyPrice = 100000;
+      sellPrice = 0;
+      tradeAction = "null";
+      tradeComplete = true;
+      priceDataSet = false;
+      tradeStarted = false;
+      profitTargetShadow = profitTarget;
+      lossComplete = true;
                 
          }
 
