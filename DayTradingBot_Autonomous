@@ -530,12 +530,7 @@ if(!analysing && currentPrice < sellStopPrice)
          
          
          
-         if(numSidesTested > 0 && numSidesTested % scaling == 0)
-         {
-         
-         lotSize+=lotScalingOffset;
-         profitTargetShadow-=1;         
-         }
+
          
          
          
@@ -576,14 +571,7 @@ if(!analysing && currentPrice < sellStopPrice)
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          */
          
-         
-         
-         if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
-         {
-         
-         lotSize+=lotScalingOffset;
-         profitTargetShadow-=1;
-         }
+      
          
          
          
@@ -635,8 +623,41 @@ debt = MathAbs(lastPL);
       priceDataSet = false;
       tradeStarted = false;
       }
+
+
+      if(numSidesTested > 0 && numSidesTested % 3 == 0)
+         {
+         
+         lotSize*=lotScalingOffset;
+         analysing = true;
+         tradePrimed = false;
+         hedgeBuy = false;  
+         hedgeSell = false;
+         trade.PositionClose(Symbol());          
+         awaitEntry = 0;
+         numIncreaseLots = 0;
+         rangeTestCount = 0;
+         primedPrice = 1;
+         maPrice = -1;
+         buyPriceSet = false;
+         sellPriceSet = false;
+         seekingProfit = false;
+         timeInTrade = 0;
+         trailingStop = defaultTrailingStop;
+         buyPrice = 100000;
+         sellPrice = 0;
+         tradeAction = "null";
+         tradeComplete = true;
+         priceDataSet = false;
+         tradeStarted = false;
+         profitTargetShadow = profitTarget;
+                
+         }
+
       
-      
+
+
+
       
         // closing trades #3333
      if (PL > (debt + profitTargetShadow))
