@@ -506,7 +506,7 @@ if(!analysing && currentPrice < sellStopPrice)
 // Selling
 if (currentBarTime != lastBarTime){
 printf(numCandleClose);
-if(currentPrice < sellPrice || currentPrice > sellStopPrice || currentPrice > buyPrice || currentPrice < buyStopPrice){
+if(currentPrice < setupSellPrice || currentPrice > sellStopPrice || currentPrice > setupBuyPrice || currentPrice < buyStopPrice){
 numCandleClose++;}
 if(numCandleClose > 1){ 
    if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
@@ -527,11 +527,12 @@ if(numCandleClose > 1){
          {
          trade.PositionClose(ticketStack[i],-1);
          }
+         for(int i=0; i < positionCount; i++){
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
-         
+         }
          
          
          
@@ -570,10 +571,12 @@ if(numCandleClose > 1){
          {
          trade.PositionClose(ticketStack[i],-1);
          }
+         for(int i=0; i < positionCount; i++){
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         }
          
          
          
@@ -598,7 +601,7 @@ if(numCandleClose > 1){
 
 // reset candle close analysis
 if (tradeStarted){
-if(currentPrice > sellPrice && currentPrice < sellStopPrice || currentPrice < buyPrice && currentPrice > buyStopPrice){
+if(currentPrice > setupSellPrice && currentPrice < sellStopPrice || currentPrice < setupBuyPrice && currentPrice > buyStopPrice){
 numCandleClose = 0;
 }}     
      
