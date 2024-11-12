@@ -649,7 +649,7 @@ debt = MathAbs(lastPL);
 
       
         // closing trades #3333
-     if (PL > (debt + profitTargetShadow))
+     if (PL > (debt + profitTarget))
      {
       analysing = true;
       tradePrimed = false;
