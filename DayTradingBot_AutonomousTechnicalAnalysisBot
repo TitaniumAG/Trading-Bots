@@ -162,6 +162,10 @@ double capturedATRValue;
 static int ticketStack[];
 bool analysing;
 double profitTargetShadow;
+bool atKeyLevelHigh;
+bool atKeyLevelLow;
+bool priceDataCleared;
+bool tradeEntryConditionsMet;
 
 /*
 void OpenBuyOrder()
@@ -284,6 +288,12 @@ int OnInit()
    Multiplier = 3;
    analysing = false;
    profitTargetShadow = profitTarget;
+   
+   
+   atKeyLevelHigh = false;
+   atKeyLevelLow = false;
+   priceDataCleared = false;
+   tradeEntryConditionsMet = false;
 
 
    return(INIT_SUCCEEDED);
@@ -484,6 +494,12 @@ color LineColorP3 = clrRed;
 priceRange = (buyPrice - sellPrice);
 priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
+if (myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh || myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow)
+{
+tradeEntryConditionsMet = true;
+}
+
+if (tradeEntryConditionsMet){
 if(!tradeStarted && !priceDataSet && awaitEntry < 1 && myAtrValue > maxAtr)
 {
 if(currentPrice < priceLevel100  && currentPrice > priceLevel0 )
@@ -520,9 +536,10 @@ priceDataSet = true;
 }
 
 }
-}
+} 
+} // end of initial trade entry conditions
 
-if(priceDataSet && !tradeStarted && awaitEntry < 1)
+if(!tradeStarted && priceDataSet) // price data entry
 {
 
 // continuous price updates so we can edit on the fly
@@ -533,24 +550,26 @@ ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
 ObjectCreate(0,"sellStopPrice",OBJ_HLINE,0,0,sellStopPrice);
 
-if(!analysing && currentPrice > buyStopPrice && myRSIValue > 70 && myCCIValue > 100 && myTenkanSenValue > spanHigh && awaitEntry < 1)
+if(!analysing && currentPrice > buyStopPrice)
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
+   atKeyLevelHigh = true;
    tradeStarted = true;
 }
-if(!analysing && currentPrice < sellStopPrice && myRSIValue < 31 && myCCIValue < - 100 && myTenkanSenValue < spanLow && awaitEntry < 1)
+
+
+if(!analysing && currentPrice < sellStopPrice)
 {
    buyPrice = sellStopPrice;
    sellPrice = setupSellPrice;
+   atKeyLevelLow = true;
    tradeStarted = true;
 }
 
-}
 
 
-
-
+} // price data entry 
 
 
 
@@ -593,6 +612,10 @@ if(!analysing && currentPrice < sellStopPrice && myRSIValue < 31 && myCCIValue <
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          */   
          
+           if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
+         {         
+         lotSize+=lotScalingOffset;
+         }
          
          
          hedgeBuy = false;
@@ -630,7 +653,11 @@ if(!analysing && currentPrice < sellStopPrice && myRSIValue < 31 && myCCIValue <
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          */
          
-      
+         
+           if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
+         {         
+         lotSize+=lotScalingOffset;
+         }
          
          
          
@@ -717,7 +744,7 @@ debt = MathAbs(lastPL);
       lossComplete = false;
       }
 
-
+      /*
       if(!lossComplete && numSidesTested > 0 && numSidesTested % 3 == 0)
       {
       lotSize+=lotScalingOffset;
@@ -750,13 +777,13 @@ debt = MathAbs(lastPL);
                 
          }
 
-      
+      */
 
 
 
       
         // closing trades #3333
-     if (PL > (debt + profitTargetShadow))
+     if (PL > (debt + profitTarget))
      {
       analysing = true;
       tradePrimed = false;
