@@ -614,7 +614,7 @@ if(!analysing && currentPrice < sellStopPrice)
          
            if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {         
-         lotSize+=lotScalingOffset;
+         lotSize*=lotScalingOffset;
          }
          
          
@@ -656,7 +656,7 @@ if(!analysing && currentPrice < sellStopPrice)
          
            if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {         
-         lotSize+=lotScalingOffset;
+         lotSize*=lotScalingOffset;
          }
          
          
@@ -783,9 +783,10 @@ debt = MathAbs(lastPL);
 
       
         // closing trades #3333
-     if (PL > (debt + profitTarget))
+     if (PL > ((debt-1) + profitTarget))
      {
       analysing = true;
+      tradeEntryConditionsMet = false;
       tradePrimed = false;
       hedgeBuy = false;  
       hedgeSell = false;
@@ -813,6 +814,47 @@ debt = MathAbs(lastPL);
       tradeStarted = false;
       profitTargetShadow = profitTarget;
       }
+      
+      
+      
+      
+              // closing trades #3333
+     if(numSidesTested > 5){
+     if (PL > (debt - 1 ))
+     {
+      analysing = true;
+      tradeEntryConditionsMet = false;
+      tradePrimed = false;
+      hedgeBuy = false;  
+      hedgeSell = false;
+      trade.PositionClose(Symbol());      
+      posCount = 1;
+      lastPL=0;
+      lotSize = defaultLotSize;
+      debt = 0;
+      numSidesTested = 0;
+      awaitEntry = 0;
+      numIncreaseLots = 0;
+      rangeTestCount = 0;
+      primedPrice = 1;
+      maPrice = -1;
+      buyPriceSet = false;
+      sellPriceSet = false;
+      seekingProfit = false;
+      timeInTrade = 0;
+      trailingStop = defaultTrailingStop;
+      buyPrice = 100000;
+      sellPrice = 0;
+      tradeAction = "null";
+      tradeComplete = true;
+      priceDataSet = false;
+      tradeStarted = false;
+      profitTargetShadow = profitTarget;
+      }}
+      
+      
+      
+
       
       
       
