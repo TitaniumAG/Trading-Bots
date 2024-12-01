@@ -276,7 +276,6 @@ int OnInit()
    //candleAnalysisCount = 110;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    maxAtr = 0;
-   tradeComplete = false;
    lossComplete = false;
    
    
@@ -286,7 +285,6 @@ int OnInit()
    lotSize = defaultLotSize;
    scaling = 2;
    Multiplier = 3;
-   analysing = false;
    profitTargetShadow = profitTarget;
    
    
@@ -294,6 +292,11 @@ int OnInit()
    atKeyLevelLow = false;
    priceDataCleared = false;
    tradeEntryConditionsMet = false;
+   
+   
+   
+   analysing = true;
+   tradeComplete = true;
 
 
    return(INIT_SUCCEEDED);
@@ -676,7 +679,7 @@ if(!analysing && currentPrice < sellStopPrice)
 debt = MathAbs(lastPL);     
     
      
-     // closing trades #3333
+     // closing trades... must look for price pullback
      if (tradeComplete && currentPrice > (sellStopPrice + (capturedATRValue * reversalScale)) && currentPrice < (buyStopPrice - (capturedATRValue * reversalScale)))
      {
       analysing = false;
@@ -785,6 +788,8 @@ debt = MathAbs(lastPL);
         // closing trades #3333
      if (PL > ((debt-1) + profitTarget))
      {
+      atKeyLevelHigh = false;
+      atKeyLevelLow = false;
       analysing = true;
       tradeEntryConditionsMet = false;
       tradePrimed = false;
@@ -822,6 +827,8 @@ debt = MathAbs(lastPL);
      if(numSidesTested > 5){
      if (PL > (debt - 1 ))
      {
+      atKeyLevelHigh = false;
+      atKeyLevelLow = false;
       analysing = true;
       tradeEntryConditionsMet = false;
       tradePrimed = false;
