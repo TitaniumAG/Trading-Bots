@@ -70,8 +70,8 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
+input bool tradeEnabled;
 input double profitTarget;
-input int positionCount;
 input double defaultLotSize;
 input double lotScalingOffset;
 double lotSize;
@@ -157,14 +157,9 @@ double sl_b;
 double sl_s;
 int scaling;
 bool tradeComplete;
-bool lossComplete;
 double capturedATRValue;
 static int ticketStack[];
-bool analysing;
-double profitTargetShadow;
-datetime currentBarTime = iTime(_Symbol, _Period, 0);
-datetime lastBarTime = currentBarTime;
-int numCandleClose;
+
 
 /*
 void OpenBuyOrder()
@@ -276,17 +271,14 @@ int OnInit()
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    maxAtr = 0;
    tradeComplete = false;
-   lossComplete = false;
    
    
    currentSymbol = Symbol();
    
    interest = 5;
    lotSize = defaultLotSize;
-   scaling = 2;
+   scaling = 1;
    Multiplier = 3;
-   analysing = false;
-   profitTargetShadow = profitTarget;
 
 
    return(INIT_SUCCEEDED);
@@ -423,7 +415,7 @@ color LineColorP3 = clrRed;
 priceRange = (buyPrice - sellPrice);
 priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
-if(!tradeComplete && !tradeStarted && !priceDataSet && awaitEntry < 1 && myAtrValue > maxAtr)
+if(!tradeStarted && !priceDataSet && awaitEntry < 1 && myAtrValue > maxAtr)
 {
 if(currentPrice < priceLevel100  && currentPrice > priceLevel0 )
 {
@@ -453,11 +445,8 @@ ObjectSetInteger(0, "sl_s", OBJPROP_COLOR, LineColorP3);
 */
 
 
-if (!analysing)
-{
-priceDataSet = true;
-}
 
+priceDataSet = true;
 }
 }
 
@@ -472,13 +461,13 @@ ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
 ObjectCreate(0,"sellStopPrice",OBJ_HLINE,0,0,sellStopPrice);
 
-if(!analysing && currentPrice > buyStopPrice)
+if(tradeEnabled && currentPrice > buyStopPrice)
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
    tradeStarted = true;
 }
-if(!analysing && currentPrice < sellStopPrice)
+if(tradeEnabled && currentPrice < sellStopPrice)
 {
    buyPrice = sellStopPrice;
    sellPrice = setupSellPrice;
@@ -500,24 +489,16 @@ if(!analysing && currentPrice < sellStopPrice)
 //ObjectCreate(0,"sellPrice",OBJ_HLINE,0,0,sellPrice);
    
     
-    currentBarTime = iTime(_Symbol, _Period, 0);
 ////////////////////////////////////
 // starting the trades
 // Selling
-if (currentBarTime != lastBarTime){
-printf(numCandleClose);
-if(currentPrice < setupSellPrice || currentPrice > sellStopPrice || currentPrice > setupBuyPrice || currentPrice < buyStopPrice){
-numCandleClose++;}
-if(numCandleClose > 1){ 
    if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
-     {     
-        
+     {   
              
-         
+
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
-         
          lastPL-=PL;
         
          //trade.PositionClose(Symbol());
@@ -527,13 +508,10 @@ if(numCandleClose > 1){
          {
          trade.PositionClose(ticketStack[i],-1);
          }
-         for(int i=0; i < positionCount; i++){
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
-         }
-         
          
          
          
@@ -541,7 +519,7 @@ if(numCandleClose > 1){
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
          
-         lotSize+=lotScalingOffset;         
+         lotSize*=lotScalingOffset;         
          }
          
          
@@ -553,12 +531,11 @@ if(numCandleClose > 1){
          tradeAction = "sell";
              
      }
-     
-     
 // Buying
-
    if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
-     {         
+     {
+         
+         
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
@@ -571,19 +548,17 @@ if(numCandleClose > 1){
          {
          trade.PositionClose(ticketStack[i],-1);
          }
-         for(int i=0; i < positionCount; i++){
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
-         }
-         
          
          
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
-         {         
-         lotSize+=lotScalingOffset;
+         {
+         
+         lotSize*=lotScalingOffset;
          }
          
          
@@ -594,145 +569,28 @@ if(numCandleClose > 1){
          tradeAction = "buy";
          
         
-     }}
+     }
+ 
      
- lastBarTime = currentBarTime;}
-
-
-// reset candle close analysis
-if (tradeStarted){
-if(currentPrice > setupSellPrice && currentPrice < sellStopPrice || currentPrice < setupBuyPrice && currentPrice > buyStopPrice){
-numCandleClose = 0;
-}}     
      
      
 //locking profit 
 debt = MathAbs(lastPL);     
     
-     /*
+     
      // closing trades #3333
-     if (tradeComplete && currentPrice > (sellStopPrice + (capturedATRValue * reversalScale)) && currentPrice < (buyStopPrice - (capturedATRValue * reversalScale)))
+     if (PL > (debt + profitTarget))
      {
-      analysing = false;
-      tradePrimed = false;
-      hedgeBuy = false;  
-      hedgeSell = false;
-      for(int i = 0; i < positionCount; i++)
-      {
-      trade.PositionClose(Symbol()); 
-      }           
-      posCount = 1;
-      if(!lossComplete){
-      lastPL=0;
-      lotSize = defaultLotSize;
-      debt = 0;
-      numSidesTested = 0;
-      }
-      awaitEntry = 0;
-      numIncreaseLots = 0;
-      rangeTestCount = 0;
-      primedPrice = 1;
-      maPrice = -1;
-      buyPriceSet = false;
-      sellPriceSet = false;
-      seekingProfit = false;
-      timeInTrade = 0;
-      trailingStop = defaultTrailingStop;
-      buyPrice = 100000;
-      sellPrice = 0;
-      tradeAction = "null";
-      tradeComplete = false;
-      priceDataSet = false;
-      tradeStarted = false;
-      }
-      */
-   /*   
-        // closing trades #3333
-     if (lossComplete && currentPrice > (sellStopPrice + (capturedATRValue * reversalScale)) && currentPrice < (buyStopPrice - (capturedATRValue * reversalScale)))
-     {
-      analysing = false;
-      tradePrimed = false;
-      hedgeBuy = false;  
-      hedgeSell = false;
-      for(int i = 0; i < positionCount; i++)
-      {
-      trade.PositionClose(Symbol()); 
-      }           
-      posCount = 1;
-      awaitEntry = 0;
-      numIncreaseLots = 0;
-      rangeTestCount = 0;
-      primedPrice = 1;
-      maPrice = -1;
-      buyPriceSet = false;
-      sellPriceSet = false;
-      seekingProfit = false;
-      timeInTrade = 0;
-      trailingStop = defaultTrailingStop;
-      buyPrice = 100000;
-      sellPrice = 0;
-      tradeAction = "null";
-      tradeComplete = false;
-      priceDataSet = false;
-      tradeStarted = false;
-      lossComplete = false;
-      }
-
-
-      if(!lossComplete && numSidesTested > 0 && numSidesTested % 3 == 0)
-      {
-      lotSize+=lotScalingOffset;
-      analysing = true;
       tradePrimed = false;
       hedgeBuy = false;  
       hedgeSell = false;
       trade.PositionClose(Symbol());      
       posCount = 1;
-      lastPL-=PL;            
-      numSidesTested = 0;
-      awaitEntry = 0;
-      numIncreaseLots = 0;
-      rangeTestCount = 0;
-      primedPrice = 1;
-      maPrice = -1;
-      buyPriceSet = false;
-      sellPriceSet = false;
-      seekingProfit = false;
-      timeInTrade = 0;
-      trailingStop = defaultTrailingStop;
-      buyPrice = 100000;
-      sellPrice = 0;
-      tradeAction = "null";
-      tradeComplete = true;
-      priceDataSet = false;
-      tradeStarted = false;
-      profitTargetShadow = profitTarget;
-      lossComplete = true;
-                
-         }
-
-      */
-
-
-
-      
-        // closing trades #3333
-     if (PL > (debt + profitTarget))
-     {
-      analysing = true;
-      tradePrimed = false;
-      hedgeBuy = false;  
-      hedgeSell = false;
-      for (int i = 0; i < ArraySize(ticketStack); i++)
-         {
-         trade.PositionClose(ticketStack[i],-1);
-         }    
-      posCount = 1;
       lastPL=0;
       lotSize = defaultLotSize;
       debt = 0;
       numSidesTested = 0;
-      awaitEntry = 0;
+      awaitEntry = freqDelay;
       numIncreaseLots = 0;
       rangeTestCount = 0;
       primedPrice = 1;
@@ -748,8 +606,11 @@ debt = MathAbs(lastPL);
       tradeComplete = true;
       priceDataSet = false;
       tradeStarted = false;
-      profitTargetShadow = profitTarget;
       }
+      
+      
+      
+      
       
       
       
