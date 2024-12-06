@@ -519,7 +519,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
          
-         lotSize*=lotScalingOffset;         
+         lotSize+=lotScalingOffset;         
          }
          
          
@@ -558,7 +558,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {
          
-         lotSize*=lotScalingOffset;
+         lotSize+=lotScalingOffset;
          }
          
          
