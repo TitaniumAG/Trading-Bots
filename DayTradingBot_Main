@@ -277,7 +277,7 @@ int OnInit()
    
    interest = 5;
    lotSize = defaultLotSize;
-   scaling = 1;
+   scaling = 2;
    Multiplier = 3;
 
 
