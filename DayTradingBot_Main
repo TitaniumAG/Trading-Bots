@@ -72,8 +72,8 @@ double priceMovePercentage;
 int numSidesTested;
 input bool tradeEnabled;
 input double profitTarget;
-input double defaultLotSize;
-input double lotScalingOffset;
+double defaultLotSize;
+double lotScalingOffset;
 double lotSize;
 double maxTrendingDuration;
 double tradingFrequency;
@@ -279,6 +279,10 @@ int OnInit()
    lotSize = defaultLotSize;
    scaling = 2;
    Multiplier = 3;
+   
+   
+   defaultLotSize = 0.01;
+   lotScalingOffset = defaultLotSize;
 
 
    return(INIT_SUCCEEDED);
