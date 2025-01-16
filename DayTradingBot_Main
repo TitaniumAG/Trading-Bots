@@ -70,10 +70,12 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-input bool tradeEnabled;
-double profitTarget;
-double defaultLotSize;
-double lotScalingOffset;
+input bool tradeEnabled = false;
+//input bool tradeReversals = false;
+double reversalBuySL = 0;
+double reversalSellSL = 0;
+input double defaultLotSize = 0.01;
+input double lotScalingOffset = 0.01;
 double lotSize;
 double maxTrendingDuration;
 double tradingFrequency;
@@ -144,7 +146,7 @@ bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
 double Multiplier;
-input double reversalScale;
+input double reversalScale = 2.0;
 input int candleAnalysisCount;
 double setupBuyPrice;
 double setupSellPrice;
@@ -281,10 +283,10 @@ int OnInit()
    Multiplier = 3;
    
    
-   defaultLotSize = 0.01;
-   lotScalingOffset = defaultLotSize;
    
-   profitTarget = 50;
+   
+   
+   
 
 
    return(INIT_SUCCEEDED);
@@ -467,16 +469,29 @@ ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
 ObjectCreate(0,"sellStopPrice",OBJ_HLINE,0,0,sellStopPrice);
 
+// up-side
 if(tradeEnabled && currentPrice > buyStopPrice)
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
+   
+   // set reversal sl values
+   reversalBuySL = buyPrice + (capturedATRValue / 2);
+   reversalSellSL = buyStopPrice - (capturedATRValue / 2);
+    
    tradeStarted = true;
 }
+
+// down-side
 if(tradeEnabled && currentPrice < sellStopPrice)
 {
    buyPrice = sellStopPrice;
    sellPrice = setupSellPrice;
+   
+   // set reversal sl values
+   reversalBuySL = buyPrice + (capturedATRValue / 2);
+   reversalSellSL = buyStopPrice - (capturedATRValue / 2);
+   
    tradeStarted = true;
 }
 
@@ -514,7 +529,9 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          {
          trade.PositionClose(ticketStack[i],-1);
          }
+         
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
@@ -554,7 +571,9 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          {
          trade.PositionClose(ticketStack[i],-1);
          }
+         
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
@@ -582,7 +601,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
      
 //locking profit 
 debt = MathAbs(lastPL);     
-    
+/*    
      
      // closing trades #3333
      if (PL > (debt + profitTarget))
@@ -590,7 +609,10 @@ debt = MathAbs(lastPL);
       tradePrimed = false;
       hedgeBuy = false;  
       hedgeSell = false;
-      trade.PositionClose(Symbol());      
+      for (int i = 0; i < ArraySize(ticketStack); i++)
+      {
+      trade.PositionClose(ticketStack[i],-1);
+      }     
       posCount = 1;
       lastPL=0;
       lotSize = defaultLotSize;
@@ -613,7 +635,19 @@ debt = MathAbs(lastPL);
       priceDataSet = false;
       tradeStarted = false;
       }
+      */
       
+      /*
+      // stop loss logic for reversals
+      if (reversalBuySL > 0 && reversalSellSL > 0)
+     {if (currentPrice > reversalBuySL || currentPrice < reversalSellSL){
+      for (int i = 0; i < ArraySize(ticketStack); i++)
+      {
+      trade.PositionClose(ticketStack[i],-1);
+      }
+      }
+      }
+      */
       
       
       
