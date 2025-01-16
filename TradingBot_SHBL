@@ -167,6 +167,7 @@ double myMFIMax;
 double myMFIMin;
 double buyers;
 double sellers;
+double filledPrice;
 
 /*
 void OpenBuyOrder()
@@ -294,6 +295,7 @@ int OnInit()
    myMFIMin = 0;
    buyers = 0;
    sellers = 0;
+   filledPrice = 0;
 
 
    return(INIT_SUCCEEDED);
@@ -528,6 +530,7 @@ double myMFIValue=myMFIArray[0];
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
+         filledPrice = currentPrice;
          
          lastPL-=PL;
          for(int i = 0; i < posCount; i++)
@@ -570,7 +573,7 @@ double myMFIValue=myMFIArray[0];
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
-         
+         filledPrice = currentPrice;
          
          lastPL-=PL;
          for(int i = 0; i < posCount; i++)
@@ -609,12 +612,12 @@ double myMFIValue=myMFIArray[0];
   
   
 
-if(!hedgeBuy && !tradeComplete && myMFIValue < 20 && tradeStarted && PL < -profitTarget) // hedge against a losing buy trade
+if(!hedgeBuy && !tradeComplete && myMFIValue < 20 && tradeStarted && MathAbs(currentPrice - filledPrice) > 500 && PL < 0) // hedge against a losing buy trade
 {
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
-         
+         filledPrice = currentPrice;
          
          lastPL-=PL;
          for(int i = 0; i < posCount; i++)
@@ -646,12 +649,12 @@ if(!hedgeBuy && !tradeComplete && myMFIValue < 20 && tradeStarted && PL < -profi
 
 
 
-if(!hedgeSell && !tradeComplete && myMFIValue > 80 && tradeStarted && PL < -profitTarget) // hedge against a losing sell trade
+if(!hedgeSell && !tradeComplete && myMFIValue > 80 && tradeStarted && MathAbs(currentPrice - filledPrice) > 500 && PL < 0) // hedge against a losing sell trade
 {
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
-         
+         filledPrice = currentPrice;
          
          lastPL-=PL;
          for(int i = 0; i < posCount; i++)
