@@ -612,7 +612,7 @@ double myMFIValue=myMFIArray[0];
   
   
 
-if(!hedgeBuy && !tradeComplete && myMFIValue < 20 && tradeStarted && MathAbs(currentPrice - filledPrice) > 500 && PL < 0) // hedge against a losing buy trade
+if(!hedgeBuy && !tradeComplete && myMFIValue < 20 && tradeStarted && MathAbs(currentPrice - filledPrice) > (reversalScale * 100) && PL < 0) // hedge against a losing buy trade
 {
          numSidesTested++;
          rangeTestCount++;
@@ -649,7 +649,7 @@ if(!hedgeBuy && !tradeComplete && myMFIValue < 20 && tradeStarted && MathAbs(cur
 
 
 
-if(!hedgeSell && !tradeComplete && myMFIValue > 80 && tradeStarted && MathAbs(currentPrice - filledPrice) > 500 && PL < 0) // hedge against a losing sell trade
+if(!hedgeSell && !tradeComplete && myMFIValue > 80 && tradeStarted && MathAbs(currentPrice - filledPrice) > (reversalScale * 100) && PL < 0) // hedge against a losing sell trade
 {
          numSidesTested++;
          rangeTestCount++;
