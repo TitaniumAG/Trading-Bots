@@ -70,10 +70,10 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-input double profitTarget;
-input int positionCount;
-input double defaultLotSize;
-input double lotScalingOffset;
+input double profitTarget = 5;
+input int positionCount = 1;
+input double defaultLotSize = 0.1;
+input double lotScalingOffset = 0.1;
 double lotSize;
 double maxTrendingDuration;
 double tradingFrequency;
@@ -144,8 +144,8 @@ bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
 double Multiplier;
-input double reversalScale;
-input int candleAnalysisCount;
+input double reversalScale = 2;
+input int candleAnalysisCount = 100;
 double setupBuyPrice;
 double setupSellPrice;
 double assetScaling;
@@ -825,6 +825,7 @@ debt = MathAbs(lastPL);
       "In trade | "+ myString3 + "\n"+
       "Price range  | "+DoubleToString(priceRange,Digits()+1) + "\n"+
       "Num sidesTested | "+IntegerToString(numSidesTested)+ "\n" +
+      "MFI SL  | "+DoubleToString(myMFIValue,Digits()+1) + "\n"+
       "price deviation | "+DoubleToString(priceDeviation);
       
       
