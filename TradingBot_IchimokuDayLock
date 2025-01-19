@@ -185,7 +185,7 @@ int OnInit()
    hedgeSell = false;
    defaultLotSize = 0.01;
    freqDelay = 500;
-   priceRange = 50;
+   priceRange = 100;
    acceptedSpanWidth = 3;
    lotSize = defaultLotSize;
    tradeStarted = false;
@@ -214,17 +214,21 @@ void OnTick()
   {
   
 
-
+/*
 //// Adding time constraints if needed
-//MqlDateTime current_time;
-//TimeToStruct(TimeLocal(), current_time);
-//int hour = current_time.hour;
+MqlDateTime current_time;
+TimeToStruct(TimeLocal(), current_time);
+int hour = current_time.hour;
 //// Check for new day
-//if (hour == 13)
-//{
-//canTrade = true;
-//profitCount = 0;     
-//}
+if (hour > 13 && hour < 20)
+{
+canTrade = true;
+}
+else
+{
+canTrade = false;
+}
+*/
 //
 //
 //if (profitCount > takeProfit)
@@ -234,12 +238,12 @@ void OnTick()
 
 
 // Get the current server time
-    datetime current_time = TimeCurrent();
+    datetime current_day = TimeCurrent();
 
    
 // Create a structure to hold time information
     MqlDateTime time_struct;
-    TimeToStruct(current_time, time_struct);
+    TimeToStruct(current_day, time_struct);
 
 // Get the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
     int day_of_week = time_struct.day_of_week;
@@ -257,7 +261,7 @@ string day_name;
         default: day_name = "Unknown";
     }
     
-    Print(day_name);
+    //Print(day_name);
 //+------------------------------------------------------------------+
 
 
@@ -320,6 +324,23 @@ string day_name;
    
 
 
+   
+   
+   // Define the y-values (doubles)
+    double pointA = myMaArray[0];
+    double pointB = myMaArray[2];
+
+    // Define the x-values (assuming equal spacing)
+    double x1 = 1, x2 = 3;
+
+    // Calculate gradients between the points
+    double gradientAB = MathAbs((pointA - pointB) / (x2 - x1)); // Gradient between A and B
+   
+
+    // Output the gradients
+    //PrintFormat("Gradient between A and B: %.6f", gradientAB);
+   
+
 
 // calculate the current rsi & cci values
    double myMaValue=myMaArray[0];
@@ -376,7 +397,7 @@ string day_name;
 // Initial Buy trade; oversold conditions where sentiment is to buy up
 //if (myRSIValue < 31 && myCCIValue < -100)
    //if(myRSIValue < 31 && myCCIValue < - 100 && currentPrice < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
-   if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday")
+   if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && gradientAB > 3)
      {
      tradeAction = "buy";
      rangeTestCount = 0; 
@@ -395,7 +416,7 @@ string day_name;
 
 // Initial Sell trade; overbought conditions where sentiment is to sell down
 //if (myRSIValue < 31 && myCCIValue < -100)
-    if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue > 70 && myCCIValue > 100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday")
+    if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue > 70 && myCCIValue > 100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && gradientAB > 3)
      {
       if(!tradeStarted)
         {
@@ -526,7 +547,10 @@ string day_name;
       profitCount = profitCount + interest;
            
      }
- 
+     
+     
+     
+     
 
      
     
@@ -590,6 +614,7 @@ string day_name;
       "Max chain  | "+DoubleToString(rangeTestCount,Digits()+1) + "\n"+
       "Price deviation  | "+DoubleToString(priceDeviation,Digits()+1) + "\n"+
       "MA range  | "+DoubleToString(maRange,Digits()+1) + "\n"+
+      "MA gradient | "+DoubleToString(gradientAB,Digits()+1) + "\n"+
       "Day name  | "+ day_name;
 
    Comment(text);
