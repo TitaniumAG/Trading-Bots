@@ -26,6 +26,7 @@ If you do not agree with any of these terms, please do not use this trading robo
 
 // create an instance of ctrade
 #include <Trade\trade.mqh>
+
 CTrade trade;
 
 bool userAlerted;
@@ -185,7 +186,6 @@ int OnInit()
    hedgeSell = false;
    defaultLotSize = 0.01;
    freqDelay = 500;
-   priceRange = 100;
    acceptedSpanWidth = 3;
    lotSize = defaultLotSize;
    tradeStarted = false;
@@ -198,9 +198,10 @@ int OnInit()
    breakoutRange = 0;
    maxRangeTest = 0;
    rangeTestCount = 0;
-   mult = 3;
+   mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 500;
+   maxAllowedDist = 300;
+   priceRange = 300;
 
    return(INIT_SUCCEEDED);
 
@@ -397,7 +398,7 @@ string day_name;
 // Initial Buy trade; oversold conditions where sentiment is to buy up
 //if (myRSIValue < 31 && myCCIValue < -100)
    //if(myRSIValue < 31 && myCCIValue < - 100 && currentPrice < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
-   if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && gradientAB > 3)
+   if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && gradientAB > 2 && awaitEntry < 1)
      {
      tradeAction = "buy";
      rangeTestCount = 0; 
@@ -416,7 +417,7 @@ string day_name;
 
 // Initial Sell trade; overbought conditions where sentiment is to sell down
 //if (myRSIValue < 31 && myCCIValue < -100)
-    if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue > 70 && myCCIValue > 100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && gradientAB > 3)
+    if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue > 70 && myCCIValue > 100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && gradientAB > 2 && awaitEntry < 1)
      {
       if(!tradeStarted)
         {
