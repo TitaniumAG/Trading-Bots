@@ -198,10 +198,10 @@ int OnInit()
    breakoutRange = 0;
    maxRangeTest = 0;
    rangeTestCount = 0;
-   mult = 2;
+   mult = 3;
    consolidationLimit = 100;
-   maxAllowedDist = 300;
-   priceRange = 300;
+   maxAllowedDist = 600;
+   priceRange = 50;
 
    return(INIT_SUCCEEDED);
 
@@ -261,7 +261,7 @@ string day_name;
         case 6: day_name = "Saturday"; break;
         default: day_name = "Unknown";
     }
-    
+    day_name = "Monday";
     //Print(day_name);
 //+------------------------------------------------------------------+
 
@@ -392,7 +392,7 @@ string day_name;
    
 
 
-
+   double n = 4;
 
 
 // Initial Buy trade; oversold conditions where sentiment is to buy up
@@ -402,8 +402,8 @@ string day_name;
      {
      tradeAction = "buy";
      rangeTestCount = 0; 
-     buyPrice = currentPrice + priceRange;
-     sellPrice = currentPrice - priceRange;
+     buyPrice = currentPrice - priceRange;
+     sellPrice = currentPrice - priceRange*n;
      //trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
      ObjectCreate(0,"My Line",OBJ_HLINE,0,0,buyPrice);
      ObjectCreate(0,"My Line2",OBJ_HLINE,0,0,sellPrice);
@@ -423,8 +423,8 @@ string day_name;
         {
          tradeAction = "sell";
          rangeTestCount = 0; 
+         buyPrice = currentPrice + priceRange*n;
          sellPrice = currentPrice - priceRange;
-         buyPrice = currentPrice + priceRange;
          //trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
          ObjectCreate(0,"My Line",OBJ_HLINE,0,0,buyPrice);
          ObjectCreate(0,"My Line2",OBJ_HLINE,0,0,sellPrice);
@@ -550,7 +550,23 @@ string day_name;
      }
      
      
-     
+     if(day_name == "Thursday" || day_name == "Friday" || day_name == "Saturday" || day_name == "Sunday")
+     {
+      priceDeviation = 0;
+      tradeStarted = false;
+      hedgeBuy = false;
+      hedgeSell = false;
+      trade.PositionClose(Symbol());
+      buyPrice = 0;
+      sellPrice = 0;
+      lastPL = 0;
+      lotSize = defaultLotSize;
+      debt = 0;
+      numSidesTested = 0;
+      awaitEntry = freqDelay;
+      numIncreaseLots = 0;
+      profitCount = profitCount + interest; 
+     }
      
 
      
