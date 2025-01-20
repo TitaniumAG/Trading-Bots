@@ -408,31 +408,26 @@ double midLevel3 =(midLevel + priceLevel0)* 0.5;
 double level61 = ((midLevel + midLevel2)* 0.5) - fibOffset;
 double level38 = ((midLevel + midLevel3)*0.5) + fibOffset;
 
+double n = 2;
+
 openPrice = iOpen(Symbol(), PERIOD_H1, 0);
-
-
-
-
-
 color LineColorP = clrMagenta;
 color LineColorP2 = clrAqua;
 color LineColorP3 = clrRed;
 
 
-
-priceRange = (buyPrice - sellPrice);
 priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
-if(!tradeStarted && !priceDataSet && awaitEntry < 1 && myAtrValue > maxAtr)
+if(!tradeStarted && !priceDataSet && myAtrValue > maxAtr)
 {
 if(currentPrice < priceLevel100  && currentPrice > priceLevel0 )
 {
 oldOpenPrice = openPrice;
-setupBuyPrice = priceLevel100;
-setupSellPrice = priceLevel0;
+setupBuyPrice = priceLevel100 + (myAtrValue*reversalScale);
+setupSellPrice = priceLevel0 - (myAtrValue*reversalScale);
 capturedATRValue = myAtrValue;
-buyStopPrice = (priceLevel100 - (myAtrValue*reversalScale));
-sellStopPrice = (priceLevel0 + (myAtrValue*reversalScale));
+buyStopPrice = priceLevel100;//(priceLevel100 - (myAtrValue*reversalScale));
+sellStopPrice = priceLevel0;//(priceLevel0 - (myAtrValue*reversalScale));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
@@ -458,26 +453,14 @@ priceDataSet = true;
 }
 }
 
-if(priceDataSet && !tradeStarted && awaitEntry < 1)
+if(priceDataSet && !tradeStarted)
 {
-
-// continuous price updates so we can edit on the fly
-buyStopPrice = (setupBuyPrice - (capturedATRValue*reversalScale));
-sellStopPrice = (setupSellPrice + (capturedATRValue*reversalScale));
-ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
-ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
-ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
-ObjectCreate(0,"sellStopPrice",OBJ_HLINE,0,0,sellStopPrice);
 
 // up-side
 if(tradeEnabled && currentPrice > buyStopPrice)
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
-   
-   // set reversal sl values
-   reversalBuySL = buyPrice + (capturedATRValue / 2);
-   reversalSellSL = buyStopPrice - (capturedATRValue / 2);
     
    tradeStarted = true;
 }
@@ -487,10 +470,6 @@ if(tradeEnabled && currentPrice < sellStopPrice)
 {
    buyPrice = sellStopPrice;
    sellPrice = setupSellPrice;
-   
-   // set reversal sl values
-   reversalBuySL = buyPrice + (capturedATRValue / 2);
-   reversalSellSL = buyStopPrice - (capturedATRValue / 2);
    
    tradeStarted = true;
 }
