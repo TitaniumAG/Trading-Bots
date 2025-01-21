@@ -279,7 +279,7 @@ int OnInit()
    
    interest = 5;
    lotSize = defaultLotSize;
-   scaling = 2;
+   scaling = 1;
    Multiplier = 3;
    
    
@@ -497,6 +497,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
              
 
          numSidesTested++;
+         printf("numsidesTested: " + numSidesTested);
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
@@ -539,6 +540,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          
          
          numSidesTested++;
+         printf("numsidesTested: " + numSidesTested);
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
@@ -755,6 +757,8 @@ debt = MathAbs(lastPL);
       "Price range  | "+DoubleToString(priceRange,Digits()+1) + "\n"+
       "Num sidesTested | "+IntegerToString(numSidesTested)+ "\n" +
       "price deviation | "+DoubleToString(priceDeviation);
+      
+      
       
       
 
