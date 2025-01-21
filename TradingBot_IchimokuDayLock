@@ -109,6 +109,7 @@ double consolidationLimit;
 bool analysisComplete;
 double maxDrawdown;
 double priceDeviation;
+double maxLoss;
 /*
 void OpenBuyOrder()
    {
@@ -198,10 +199,11 @@ int OnInit()
    breakoutRange = 0;
    maxRangeTest = 0;
    rangeTestCount = 0;
-   mult = 3;
+   mult = 2;
    consolidationLimit = 100;
    maxAllowedDist = 600;
    priceRange = 50;
+   maxLoss = 50;
 
    return(INIT_SUCCEEDED);
 
@@ -265,6 +267,16 @@ string day_name;
     //Print(day_name);
 //+------------------------------------------------------------------+
 
+
+
+MqlDateTime current_time;
+TimeToStruct(TimeLocal(), current_time);
+int hour = current_time.hour;
+//// Check for new day
+if(!canTrade && hour == 0)
+{
+canTrade = true;
+}
 
 // set current price
    currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -569,6 +581,25 @@ string day_name;
      }
      
 
+     if (debt > maxLoss) //(debt + interest)
+     {
+      canTrade = false;
+      priceDeviation = 0;
+      tradeStarted = false;
+      hedgeBuy = false;
+      hedgeSell = false;
+      trade.PositionClose(Symbol());
+      buyPrice = 0;
+      sellPrice = 0;
+      lastPL = 0;
+      lotSize = defaultLotSize;
+      debt = 0;
+      numSidesTested = 0;
+      awaitEntry = freqDelay;
+      numIncreaseLots = 0;
+      profitCount = profitCount + interest;
+           
+     }
      
     
 
