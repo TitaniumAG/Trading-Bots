@@ -174,8 +174,8 @@ int OnInit()
    spanWidth = 0;
    
 
-   debt = 0;   
-   interest = 5;
+   debt = 0;
+
    
    retestLimit = 300;
    currentPrice = 0;
@@ -185,7 +185,6 @@ int OnInit()
    lastPL = 0;
    hedgeBuy = false;
    hedgeSell = false;
-   defaultLotSize = 0.01;
    freqDelay = 500;
    acceptedSpanWidth = 3;
    lotSize = defaultLotSize;
@@ -203,7 +202,10 @@ int OnInit()
    consolidationLimit = 100;
    maxAllowedDist = 600;
    priceRange = 50;
-   maxLoss = 50;
+   
+   defaultLotSize = 0.02;   
+   interest = 6;
+   maxLoss = 100;
 
    return(INIT_SUCCEEDED);
 
