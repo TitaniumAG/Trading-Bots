@@ -110,6 +110,7 @@ bool analysisComplete;
 double maxDrawdown;
 double priceDeviation;
 double maxLoss;
+double priceDataSet;
 /*
 void OpenBuyOrder()
    {
@@ -205,7 +206,7 @@ int OnInit()
    defaultLotSize = 0.02;
    lotSize = defaultLotSize;   
    interest = 6;
-   maxLoss = 100;
+   maxLoss = 300;
 
    return(INIT_SUCCEEDED);
 
@@ -409,24 +410,24 @@ canTrade = true;
    
 
 
-   double n = 4;
+   double n = 2;
+   double m = 200;
 
 
 // Initial Buy trade; oversold conditions where sentiment is to buy up
 //if (myRSIValue < 31 && myCCIValue < -100)
    //if(myRSIValue < 31 && myCCIValue < - 100 && currentPrice < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
-   if (canTrade && cloudDist > maxAllowedDist && !tradeStarted && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && awaitEntry < 1)
+   if (canTrade && cloudDist > maxAllowedDist && !priceDataSet && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && awaitEntry < 1)
      {
      tradeAction = "buy";
      rangeTestCount = 0; 
-     buyPrice = currentPrice - priceRange;
-     sellPrice = currentPrice - priceRange*n;
+     buyPrice = currentPrice - m;
+     sellPrice = currentPrice - m*n;
      //trade.Buy(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
      ObjectCreate(0,"My Line",OBJ_HLINE,0,0,buyPrice);
      ObjectCreate(0,"My Line2",OBJ_HLINE,0,0,sellPrice);
+     priceDataSet = true;
      // Buy hedge prevention because we are already selling! Important!
-     
-     tradeStarted = true;
       
      }
 ///////////////
@@ -434,23 +435,58 @@ canTrade = true;
 
 // Initial Sell trade; overbought conditions where sentiment is to sell down
 //if (myRSIValue < 31 && myCCIValue < -100)
-    if (canTrade && cloudDist > maxAllowedDist && !tradeStarted && myRSIValue > 70 && myCCIValue > 100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && awaitEntry < 1)
+    if (canTrade && cloudDist > maxAllowedDist && !priceDataSet && myRSIValue > 70 && myCCIValue > 100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && awaitEntry < 1)
      {
       if(!tradeStarted)
         {
          tradeAction = "sell";
          rangeTestCount = 0; 
-         buyPrice = currentPrice + priceRange*n;
-         sellPrice = currentPrice - priceRange;
+         buyPrice = currentPrice + m*n;
+         sellPrice = currentPrice + m;
          //trade.Sell(defaultLotSize,NULL,Ask,(0),(0),"Bot executed trade");
          ObjectCreate(0,"My Line",OBJ_HLINE,0,0,buyPrice);
          ObjectCreate(0,"My Line2",OBJ_HLINE,0,0,sellPrice);
+         priceDataSet = true;
          // Sell hedge prevention because we are already selling! Important!
-         
-         tradeStarted = true;
         }
      }
 ///////////////
+
+
+// priming trades
+   if(currentPrice > sellPrice && currentPrice < buyPrice)
+   {
+   tradeStarted = true;
+   }
+
+   if(priceDataSet)
+   {
+   priceDeviation = MathAbs(((buyPrice + sellPrice)/2) - currentPrice);
+   }
+   else
+   {
+   priceDeviation = 0;
+   }
+   
+   if(priceDeviation > 800 && PL == 0)
+   {
+      priceDataSet = false;
+      priceDeviation = 0;
+      tradeStarted = false;
+      hedgeBuy = false;
+      hedgeSell = false;
+      trade.PositionClose(Symbol());
+      buyPrice = 0;
+      sellPrice = 0;
+      lastPL = 0;
+      lotSize = defaultLotSize;
+      debt = 0;
+      numSidesTested = 0;
+      awaitEntry = freqDelay;
+      numIncreaseLots = 0;
+      profitCount = profitCount + interest;
+   }
+
 
 
 /*
@@ -549,6 +585,7 @@ canTrade = true;
    
    if (PL > (debt + interest)) //(debt + interest)
      {
+      priceDataSet = false;
       priceDeviation = 0;
       tradeStarted = false;
       hedgeBuy = false;
@@ -569,6 +606,7 @@ canTrade = true;
      
      if(day_name == "Thursday" || day_name == "Friday" || day_name == "Saturday" || day_name == "Sunday")
      {
+      priceDataSet = false;
       priceDeviation = 0;
       tradeStarted = false;
       hedgeBuy = false;
@@ -582,13 +620,14 @@ canTrade = true;
       numSidesTested = 0;
       awaitEntry = freqDelay;
       numIncreaseLots = 0;
-      profitCount = profitCount + interest; 
+      profitCount = profitCount + interest;
      }
      
 
      if (debt > maxLoss) //(debt + interest)
      {
       canTrade = false;
+      priceDataSet = false;
       priceDeviation = 0;
       tradeStarted = false;
       hedgeBuy = false;
