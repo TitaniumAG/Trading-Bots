@@ -187,7 +187,6 @@ int OnInit()
    hedgeSell = false;
    freqDelay = 500;
    acceptedSpanWidth = 3;
-   lotSize = defaultLotSize;
    tradeStarted = false;
    pendingSellSet = false;
    numSidesTested = 0;
@@ -200,10 +199,11 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 600;
+   maxAllowedDist = 300;
    priceRange = 50;
    
-   defaultLotSize = 0.02;   
+   defaultLotSize = 0.02;
+   lotSize = defaultLotSize;   
    interest = 6;
    maxLoss = 100;
 
@@ -254,6 +254,7 @@ canTrade = false;
     int day_of_week = time_struct.day_of_week;
     
 string day_name;
+    
     switch(day_of_week)
     {
         case 0: day_name = "Sunday"; break;
@@ -396,13 +397,15 @@ canTrade = true;
 
 
 
-   spanAverage = (MathAbs(mySpanAValue + mySpanBValue)/2);
+   spanAverage = (mySpanAValue + mySpanBValue)/2;
    spanWidth = MathAbs(mySpanAValue - mySpanBValue);
    spanHigh = (spanAverage + maxAllowedDist);
    spanLow = (spanAverage - maxAllowedDist);
    
-    
-
+   
+   //ObjectCreate(0,"My Line",OBJ_HLINE,0,0,spanAverage);
+   
+   double cloudDist = MathAbs(currentPrice - spanAverage);
    
 
 
@@ -412,7 +415,7 @@ canTrade = true;
 // Initial Buy trade; oversold conditions where sentiment is to buy up
 //if (myRSIValue < 31 && myCCIValue < -100)
    //if(myRSIValue < 31 && myCCIValue < - 100 && currentPrice < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
-   if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && gradientAB > 2 && awaitEntry < 1)
+   if (canTrade && cloudDist > maxAllowedDist && !tradeStarted && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && awaitEntry < 1)
      {
      tradeAction = "buy";
      rangeTestCount = 0; 
@@ -431,7 +434,7 @@ canTrade = true;
 
 // Initial Sell trade; overbought conditions where sentiment is to sell down
 //if (myRSIValue < 31 && myCCIValue < -100)
-    if (canTrade && maRange > maxAllowedDist && !tradeStarted && myRSIValue > 70 && myCCIValue > 100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && gradientAB > 2 && awaitEntry < 1)
+    if (canTrade && cloudDist > maxAllowedDist && !tradeStarted && myRSIValue > 70 && myCCIValue > 100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && awaitEntry < 1)
      {
       if(!tradeStarted)
         {
@@ -512,7 +515,7 @@ canTrade = true;
          lastPL = lastPL + PL;
          trade.PositionClose(Symbol());
          
-         
+         printf("hello world");
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          
          
