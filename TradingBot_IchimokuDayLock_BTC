@@ -201,7 +201,7 @@ int OnInit()
    mult = 2;
    consolidationLimit = 100;
    maxAllowedDist = 300;
-   priceRange = 50;
+   priceRange = 300;
    
    defaultLotSize = 0.02;
    lotSize = defaultLotSize;   
@@ -411,7 +411,7 @@ canTrade = true;
 
 
    double n = 2;
-   double m = 200;
+   double m = priceRange;
 
 
 // Initial Buy trade; oversold conditions where sentiment is to buy up
@@ -459,25 +459,16 @@ canTrade = true;
    tradeStarted = true;
    }
 
-   if(priceDataSet)
-   {
+
    priceDeviation = MathAbs(((buyPrice + sellPrice)/2) - currentPrice);
-   }
-   else
-   {
-   priceDeviation = 0;
-   }
+
    
-   if(priceDeviation > 800 && PL == 0)
+   if(!tradeStarted && priceDeviation > 800 && priceDataSet)
    {
-      priceDataSet = false;
-      priceDeviation = 0;
       tradeStarted = false;
       hedgeBuy = false;
       hedgeSell = false;
       trade.PositionClose(Symbol());
-      buyPrice = 0;
-      sellPrice = 0;
       lastPL = 0;
       lotSize = defaultLotSize;
       debt = 0;
@@ -485,8 +476,8 @@ canTrade = true;
       awaitEntry = freqDelay;
       numIncreaseLots = 0;
       profitCount = profitCount + interest;
+      priceDataSet = false;
    }
-
 
 
 /*
@@ -706,7 +697,7 @@ canTrade = true;
       "Max chain  | "+DoubleToString(rangeTestCount,Digits()+1) + "\n"+
       "Price deviation  | "+DoubleToString(priceDeviation,Digits()+1) + "\n"+
       "MA range  | "+DoubleToString(maRange,Digits()+1) + "\n"+
-      "MA gradient | "+DoubleToString(gradientAB,Digits()+1) + "\n"+
+      "Cloud distance | "+DoubleToString(cloudDist,Digits()+1) + "\n"+
       "Day name  | "+ day_name;
 
    Comment(text);
