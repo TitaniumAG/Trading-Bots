@@ -1,0 +1,164 @@
+import ccxt
+import time
+import logging
+import creds
+import numpy as np
+
+# Replace these with your actual API keys and password
+api_key = creds.api_key
+secret = creds.secret
+password = creds.password
+
+# Trade trigger logging
+# Main function
+symbol = 'SUIUSDTM'
+timeframe = '1m'
+limit = 52  # To calculate Ichimoku, RSI, and CCI
+amount = 2
+leverage = 37
+
+canTrade = False
+buyTrade = False
+sellTrade = False
+numSidesTested = 0
+priceSet = False   
+
+# Initialize logging
+logging.basicConfig(filename='trading_bot.log', level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+def log(message):
+    logging.info(message)
+    print(message)
+
+# Initialize the KuCoin Futures exchange object
+exchange = ccxt.kucoinfutures({
+    'apiKey': api_key,
+    'secret': secret,
+    'password': password,
+    'enableRateLimit': True,
+    'options': {
+        'defaultType': 'future',
+    }
+})
+
+# Function to calculate Ichimoku Cloud components
+def calculate_ichimoku(ohlcv):
+    high_prices = np.array([candle[2] for candle in ohlcv])
+    low_prices = np.array([candle[3] for candle in ohlcv])
+    close_prices = np.array([candle[4] for candle in ohlcv])
+
+    nine_period_high = np.max(high_prices[-9:])
+    nine_period_low = np.min(low_prices[-9:])
+    span_a = (np.max(high_prices[-26:]) + np.min(low_prices[-26:])) / 2
+    span_b = (np.max(high_prices[-52:]) + np.min(low_prices[-52:])) / 2
+
+    chikou_span = close_prices[-1]
+
+    return chikou_span, span_a, span_b
+
+# Function to calculate RSI
+def calculate_rsi(close_prices, period=14):
+    deltas = np.diff(close_prices)
+    seed = deltas[:period]
+    up = seed[seed >= 0].sum() / period
+    down = -seed[seed < 0].sum() / period
+    rs = up / down
+    rsi = np.zeros_like(close_prices)
+    rsi[:period] = 100 - 100 / (1 + rs)
+
+    for i in range(period, len(close_prices)):
+        delta = deltas[i - 1]
+        upval = delta if delta > 0 else 0
+        downval = -delta if delta < 0 else 0
+
+        up = (up * (period - 1) + upval) / period
+        down = (down * (period - 1) + downval) / period
+        rs = up / down
+        rsi[i] = 100 - 100 / (1 + rs)
+
+    return rsi[-1]
+
+# Function to calculate CCI
+def calculate_cci(ohlcv, period=20):
+    high_prices = np.array([candle[2] for candle in ohlcv])
+    low_prices = np.array([candle[3] for candle in ohlcv])
+    close_prices = np.array([candle[4] for candle in ohlcv])
+
+    tp = (high_prices + low_prices + close_prices) / 3
+    ma = np.mean(tp[-period:])
+    mean_deviation = np.mean(np.abs(tp[-period:] - ma))
+
+    cci = (tp[-1] - ma) / (0.015 * mean_deviation)
+    return cci
+
+# Function to fetch OHLCV data
+def fetch_ohlcv(symbol, timeframe, limit):
+    try:
+        return exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+    except Exception as e:
+        log(f"Error fetching OHLCV data: {e}")
+        return None
+
+# Function to fetch the current price of a symbol
+def fetch_current_price(symbol):
+    try:
+        ticker = exchange.fetch_ticker(symbol)
+        return ticker['last']
+    except Exception as e:
+        log(f"Error fetching current price: {e}")
+        return None
+
+# Function to execute a market buy order
+def execute_market_buy(symbol, amount):
+    try:
+        order = exchange.createOrder(symbol, 'market', 'buy', amount, params={'leverage': leverage})
+        log(f'Buy order executed for {amount} {symbol}. Order details: {order}')
+        return True
+    except ccxt.NetworkError as e:
+        log(f'Network error: {e}')
+    except ccxt.ExchangeError as e:
+        log(f'Exchange error: {e}')
+    except Exception as e:
+        log(f'Error: {e}')
+    return False
+
+# Function to execute a market sell order
+def execute_market_sell(symbol, amount):
+    try:
+        order = exchange.createOrder(symbol, 'market', 'sell', amount, params={'leverage': leverage})
+        log(f'Sell order executed for {amount} {symbol}. Order details: {order}')
+        return True
+    except ccxt.NetworkError as e:
+        log(f'Network error: {e}')
+    except ccxt.ExchangeError as e:
+        log(f'Exchange error: {e}')
+    except Exception as e:
+        log(f'Error: {e}')
+    return False
+
+
+
+while True:
+    ohlcv = fetch_ohlcv(symbol, timeframe, limit)
+
+    if ohlcv:
+        close_prices = [candle[4] for candle in ohlcv]
+
+        chikou_span, span_a, span_b = calculate_ichimoku(ohlcv)
+        rsi = calculate_rsi(close_prices)
+        cci = calculate_cci(ohlcv)
+
+        log(f"Chikou Span: {chikou_span}, Span A: {span_a}, Span B: {span_b}, RSI: {rsi}, CCI: {cci}")
+
+        current_price = fetch_current_price(symbol)
+
+        if chikou_span > max(span_a, span_b) and rsi > 70 and cci > 100:
+            log("Sell conditions met.")
+            execute_market_sell(symbol, amount)
+
+        elif chikou_span < min(span_a, span_b) and rsi < 30 and cci < -100:
+            log("Buy conditions met.")
+            execute_market_buy(symbol, amount)
+
+    time.sleep(1)
