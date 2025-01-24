@@ -201,7 +201,7 @@ int OnInit()
    mult = 2;
    consolidationLimit = 100;
    maxAllowedDist = 300;
-   priceRange = 300;
+   priceRange = 500;
    
    defaultLotSize = 0.02;
    lotSize = defaultLotSize;   
@@ -411,7 +411,7 @@ canTrade = true;
 
 
    double n = 2;
-   double m = priceRange;
+   double m = 600;
 
 
 // Initial Buy trade; oversold conditions where sentiment is to buy up
@@ -460,7 +460,9 @@ canTrade = true;
    }
 
 
+   if(priceDataSet){
    priceDeviation = MathAbs(((buyPrice + sellPrice)/2) - currentPrice);
+   }
 
    
    if(!tradeStarted && priceDeviation > 800 && priceDataSet)
