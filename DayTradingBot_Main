@@ -280,7 +280,7 @@ int OnInit()
    
    interest = 5;
    lotSize = defaultLotSize;
-   scaling = 2;
+   scaling = 1;
    Multiplier = 3;
    
    
@@ -364,6 +364,21 @@ void OnTick()
 //}
 
 
+//// Adding time constraints if needed
+MqlDateTime current_time;
+TimeToStruct(TimeLocal(), current_time);
+int hour = current_time.hour;
+//// Check for new day
+if (hour > 8)
+{
+   canTrade = true;
+}
+else
+{
+canTrade = false;
+}
+
+
 // set current price
    currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
@@ -437,7 +452,7 @@ color LineColorP3 = clrRed;
 
 priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
-if(!tradeStarted && !priceDataSet && myAtrValue > maxAtr)
+if(!tradeStarted && !priceDataSet && myAtrValue > maxAtr && canTrade)
 {
 if(currentPrice < priceLevel100  && myMaValue > priceLevel0 )
 {
@@ -511,7 +526,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
 ////////////////////////////////////
 // starting the trades
 // Selling
-   if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
+   if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted && canTrade)
      {   
              
 
@@ -555,7 +570,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
              
      }
 // Buying
-   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
+   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && canTrade)
      {
          
          
@@ -777,8 +792,8 @@ debt = MathAbs(lastPL);
       "In trade | "+ myString3 + "\n"+
       "Price range  | "+DoubleToString(priceRange,Digits()+1) + "\n"+
       "Num sidesTested | "+IntegerToString(numSidesTested)+ "\n" +
-      "price deviation | "+DoubleToString(priceDeviation)+ "\n" +
-      "MA | "+DoubleToString(myMaValue);
+      "price deviation | "+DoubleToString(priceDeviation);
+
       
       
       
