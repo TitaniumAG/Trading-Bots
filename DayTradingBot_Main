@@ -369,7 +369,7 @@ MqlDateTime current_time;
 TimeToStruct(TimeLocal(), current_time);
 int hour = current_time.hour;
 //// Check for new day
-if (hour > 8)
+if (hour > 8 && hour < 21)
 {
    canTrade = true;
 }
