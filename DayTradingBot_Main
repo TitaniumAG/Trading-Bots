@@ -161,7 +161,7 @@ int scaling;
 bool tradeComplete;
 double capturedATRValue;
 static int ticketStack[];
-
+int myMA;
 
 /*
 void OpenBuyOrder()
@@ -285,7 +285,13 @@ int OnInit()
    
    
    
-   
+   // In your OnInit() function:
+   myMA = iMA(_Symbol, _Period, 8, 0, MODE_EMA, PRICE_CLOSE);
+   PlotIndexSetInteger(0, PLOT_LINE_COLOR, clrRed);    // Set MA line color to red
+   PlotIndexSetInteger(0, PLOT_LINE_STYLE, STYLE_SOLID); // Set line style
+   PlotIndexSetInteger(0, PLOT_LINE_WIDTH, 2);         // Set line width
+   long chart_id = ChartID();
+   ChartIndicatorAdd(chart_id, 0, myMA);
    
 
 
@@ -398,6 +404,18 @@ CopyBuffer(myAtr,0,0,3,myAtrArray);
 // calculate the current indicator values
 double myAtrValue=myAtrArray[0];
 
+// the ma
+
+
+
+// Then in your OnTick():
+double myMaArray[];
+ArraySetAsSeries(myMaArray, true);
+CopyBuffer(myMA, 0, 0, 3, myMaArray);
+double myMaValue = myMaArray[0];
+
+
+
 
 
 // trade entry conditions #0000
@@ -420,14 +438,14 @@ priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
 if(!tradeStarted && !priceDataSet && myAtrValue > maxAtr)
 {
-if(currentPrice < priceLevel100  && currentPrice > priceLevel0 )
+if(myMaValue < priceLevel100  && myMaValue > priceLevel0 )
 {
 oldOpenPrice = openPrice;
-setupBuyPrice = priceLevel100 + (myAtrValue*reversalScale)*2;
-setupSellPrice = priceLevel0 - (myAtrValue*reversalScale)*2;
+setupBuyPrice = priceLevel100;
+setupSellPrice = priceLevel0;
 capturedATRValue = myAtrValue;
-buyStopPrice = priceLevel100;//(priceLevel100 - (myAtrValue*reversalScale));
-sellStopPrice = priceLevel0;//(priceLevel0 - (myAtrValue*reversalScale));
+buyStopPrice = (priceLevel100 - (myAtrValue*reversalScale));
+sellStopPrice = (priceLevel0 + (myAtrValue*reversalScale));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
@@ -457,7 +475,7 @@ if(priceDataSet && !tradeStarted)
 {
 
 // up-side
-if(tradeEnabled && currentPrice > buyStopPrice)
+if(tradeEnabled && myMaValue > buyStopPrice)
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
@@ -466,7 +484,7 @@ if(tradeEnabled && currentPrice > buyStopPrice)
 }
 
 // down-side
-if(tradeEnabled && currentPrice < sellStopPrice)
+if(tradeEnabled && myMaValue < sellStopPrice)
 {
    buyPrice = sellStopPrice;
    sellPrice = setupSellPrice;
@@ -492,7 +510,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
 ////////////////////////////////////
 // starting the trades
 // Selling
-   if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
+   if(!hedgeSell && !tradeComplete && myMaValue < (sellPrice - breakoutRange) && tradeStarted)
      {   
              
 
@@ -535,7 +553,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
              
      }
 // Buying
-   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
+   if(!hedgeBuy && !tradeComplete && myMaValue > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
      {
          
          
