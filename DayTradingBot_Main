@@ -287,7 +287,7 @@ int OnInit()
    
    // In your OnInit() function:
    myMA = iMA(_Symbol, _Period, 8, 0, MODE_EMA, PRICE_CLOSE);
-   PlotIndexSetInteger(0, PLOT_LINE_COLOR, clrRed);    // Set MA line color to red
+   PlotIndexSetInteger(0, PLOT_LINE_COLOR, clrWhite);    // Set MA line color to red
    PlotIndexSetInteger(0, PLOT_LINE_STYLE, STYLE_SOLID); // Set line style
    PlotIndexSetInteger(0, PLOT_LINE_WIDTH, 2);         // Set line width
    long chart_id = ChartID();
@@ -475,7 +475,7 @@ if(priceDataSet && !tradeStarted)
 {
 
 // up-side
-if(tradeEnabled && myMaValue > buyStopPrice)
+if(tradeEnabled && currentPrice > buyStopPrice)
 {
    buyPrice = setupBuyPrice;
    sellPrice = buyStopPrice;
@@ -484,7 +484,7 @@ if(tradeEnabled && myMaValue > buyStopPrice)
 }
 
 // down-side
-if(tradeEnabled && myMaValue < sellStopPrice)
+if(tradeEnabled && currentPrice < sellStopPrice)
 {
    buyPrice = sellStopPrice;
    sellPrice = setupSellPrice;
@@ -774,7 +774,8 @@ debt = MathAbs(lastPL);
       "In trade | "+ myString3 + "\n"+
       "Price range  | "+DoubleToString(priceRange,Digits()+1) + "\n"+
       "Num sidesTested | "+IntegerToString(numSidesTested)+ "\n" +
-      "price deviation | "+DoubleToString(priceDeviation);
+      "price deviation | "+DoubleToString(priceDeviation)+ "\n" +
+      "MA | "+DoubleToString(myMaValue);
       
       
       
