@@ -71,6 +71,7 @@ double priceRange;
 double priceMovePercentage;
 int numSidesTested;
 input bool tradeEnabled = false;
+input int positionCount = 1;
 //input bool tradeReversals = false;
 double reversalBuySL = 0;
 double reversalSellSL = 0;
@@ -279,7 +280,7 @@ int OnInit()
    
    interest = 5;
    lotSize = defaultLotSize;
-   scaling = 1;
+   scaling = 2;
    Multiplier = 3;
    
    
@@ -438,7 +439,7 @@ priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
 if(!tradeStarted && !priceDataSet && myAtrValue > maxAtr)
 {
-if(myMaValue < priceLevel100  && myMaValue > priceLevel0 )
+if(currentPrice < priceLevel100  && myMaValue > priceLevel0 )
 {
 oldOpenPrice = openPrice;
 setupBuyPrice = priceLevel100;
@@ -510,7 +511,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
 ////////////////////////////////////
 // starting the trades
 // Selling
-   if(!hedgeSell && !tradeComplete && myMaValue < (sellPrice - breakoutRange) && tradeStarted)
+   if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
      {   
              
 
@@ -527,12 +528,13 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          {
          trade.PositionClose(ticketStack[i],-1);
          }
-         
+         for (int i = 0; i < positionCount; i++)
+         {
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         }
          
          
          
@@ -553,7 +555,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
              
      }
 // Buying
-   if(!hedgeBuy && !tradeComplete && myMaValue > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
+   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
      {
          
          
@@ -570,12 +572,13 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          {
          trade.PositionClose(ticketStack[i],-1);
          }
-         
+         for (int i = 0; i < positionCount; i++)
+         {
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         
          ulong tradeTicket = trade.ResultOrder();
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         }
          
          
          
