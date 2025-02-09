@@ -660,7 +660,7 @@ if(tradeEnabled && currentPrice < sellStopPrice && !tradeStartedLower && priceDa
              
      }
 // Buying
-   if(!hedgeBuyLower && !tradeComplete && myMaValue > (sellPriceUpper + breakoutRange) && tradeStartedLower && lotSize < 1)
+   if(!hedgeBuyLower && !tradeComplete && myMaValue > (buyPriceLower + breakoutRange) && tradeStartedLower && lotSize < 1)
      {
          
          
