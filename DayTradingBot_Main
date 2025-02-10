@@ -71,7 +71,7 @@ double priceRange;
 double priceMovePercentage;
 int numSidesTested;
 input bool tradeEnabled = false;
-input int positionCount = 1;
+input int positionCount = 7;
 //input bool tradeReversals = false;
 double reversalBuySL = 0;
 double reversalSellSL = 0;
@@ -148,7 +148,7 @@ double oldOpenPrice;
 double maxDeviation;
 double Multiplier;
 input double reversalScale = 2.0;
-input int candleAnalysisCount;
+input int candleAnalysisCount = 60;
 double setupBuyPrice;
 double setupSellPrice;
 double assetScaling;
@@ -285,7 +285,7 @@ int OnInit()
    
    
    
-   
+   /*
    // In your OnInit() function:
    myMA = iMA(_Symbol, _Period, 8, 0, MODE_EMA, PRICE_CLOSE);
    PlotIndexSetInteger(0, PLOT_LINE_COLOR, clrWhite);    // Set MA line color to red
@@ -293,7 +293,7 @@ int OnInit()
    PlotIndexSetInteger(0, PLOT_LINE_WIDTH, 2);         // Set line width
    long chart_id = ChartID();
    ChartIndicatorAdd(chart_id, 0, myMA);
-   
+   */
 
 
    return(INIT_SUCCEEDED);
@@ -369,7 +369,7 @@ MqlDateTime current_time;
 TimeToStruct(TimeLocal(), current_time);
 int hour = current_time.hour;
 //// Check for new day
-if (hour > 8 && hour < 21)
+if (hour > 8)
 {
    canTrade = true;
 }
@@ -423,13 +423,13 @@ double myAtrValue=myAtrArray[0];
 // the ma
 
 
-
+/*
 // Then in your OnTick():
 double myMaArray[];
 ArraySetAsSeries(myMaArray, true);
 CopyBuffer(myMA, 0, 0, 3, myMaArray);
 double myMaValue = myMaArray[0];
-
+*/
 
 
 
@@ -452,9 +452,9 @@ color LineColorP3 = clrRed;
 
 priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 
-if(!tradeStarted && !priceDataSet && myAtrValue > maxAtr && canTrade)
+if(!tradeStarted && !priceDataSet && canTrade)
 {
-if(currentPrice < priceLevel100  && myMaValue > priceLevel0 )
+if(currentPrice < priceLevel100  && currentPrice > priceLevel0 )
 {
 oldOpenPrice = openPrice;
 setupBuyPrice = priceLevel100;
