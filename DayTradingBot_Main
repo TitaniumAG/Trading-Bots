@@ -71,12 +71,11 @@ double priceRange;
 double priceMovePercentage;
 int numSidesTested;
 input bool tradeEnabled = false;
-input int positionCount = 7;
+input int positionCount = 1;
 //input bool tradeReversals = false;
 double reversalBuySL = 0;
 double reversalSellSL = 0;
 input double defaultLotSize = 0.01;
-input double lotScalingOffset = 0.01;
 double lotSize;
 double maxTrendingDuration;
 double tradingFrequency;
@@ -554,16 +553,6 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          
          
          
-         if(numSidesTested > 0 && numSidesTested % scaling == 0)
-         {
-         
-         lotSize+=lotScalingOffset;         
-         }
-         
-         
-         
-         
-         
          hedgeBuy = false;
          hedgeSell = true;  
          tradeAction = "sell";
@@ -597,11 +586,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          
          
          
-         if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
-         {
-         
-         lotSize+=lotScalingOffset;
-         }
+
          
          
          
