@@ -147,7 +147,7 @@ double oldOpenPrice;
 double maxDeviation;
 double Multiplier;
 input double reversalScale = 2.0;
-input int candleAnalysisCount = 60;
+input int candleAnalysisCount = 1;
 double setupBuyPrice;
 double setupSellPrice;
 double assetScaling;
@@ -279,7 +279,7 @@ int OnInit()
    
    interest = 5;
    lotSize = defaultLotSize;
-   scaling = 1;
+   scaling = 2;
    Multiplier = 3;
    
    
@@ -361,21 +361,6 @@ void OnTick()
 //{
 //canTrade = false;
 //}
-
-
-//// Adding time constraints if needed
-MqlDateTime current_time;
-TimeToStruct(TimeLocal(), current_time);
-int hour = current_time.hour;
-//// Check for new day
-if (hour > 8)
-{
-   canTrade = true;
-}
-else
-{
-canTrade = false;
-}
 
 
 // set current price
@@ -525,7 +510,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
 ////////////////////////////////////
 // starting the trades
 // Selling
-   if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted && canTrade)
+   if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
      {   
              
 
@@ -550,7 +535,10 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          }
          
-         
+         if(numSidesTested > 0 && numSidesTested % scaling == 0)
+         {
+         lotSize+=0.01;
+         }
          
          
          hedgeBuy = false;
@@ -559,7 +547,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
              
      }
 // Buying
-   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && canTrade)
+   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted)
      {
          
          
@@ -584,7 +572,10 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          }
          
-         
+         if(numSidesTested > 0 && numSidesTested % scaling == 0)
+         {
+         lotSize+=0.01;
+         }
          
 
          
