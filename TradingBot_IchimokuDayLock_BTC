@@ -205,7 +205,7 @@ int OnInit()
    
    defaultLotSize = 0.02;
    lotSize = defaultLotSize;   
-   interest = 10;
+   interest = 33;
    maxLoss = 300;
 
    return(INIT_SUCCEEDED);
