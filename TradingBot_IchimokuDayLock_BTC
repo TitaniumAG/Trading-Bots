@@ -205,7 +205,7 @@ int OnInit()
    
    defaultLotSize = 0.02;
    lotSize = defaultLotSize;   
-   interest = 6;
+   interest = 10;
    maxLoss = 300;
 
    return(INIT_SUCCEEDED);
@@ -319,7 +319,7 @@ canTrade = true;
    int myRSIDefinition=iRSI(_Symbol, _Period,14,PRICE_CLOSE);
    int myCCIDefinition=iCCI(_Symbol, _Period,14,PRICE_CLOSE);
    
-   int myMA=iMA(_Symbol,_Period,200,0,MODE_SMA,PRICE_CLOSE);
+   int myMA=iMA(_Symbol,_Period,8,0,MODE_EMA,PRICE_CLOSE);
 
 
 
@@ -411,7 +411,7 @@ canTrade = true;
 
 
    double n = 2;
-   double m = 600;
+   double m = 2000;
 
 
 // Initial Buy trade; oversold conditions where sentiment is to buy up
@@ -454,18 +454,18 @@ canTrade = true;
 
 
 // priming trades
-   if(currentPrice > sellPrice && currentPrice < buyPrice)
+   if(myMaValue > sellPrice && currentPrice < buyPrice)
    {
    tradeStarted = true;
    }
 
 
-   if(priceDataSet){
-   priceDeviation = MathAbs(((buyPrice + sellPrice)/2) - currentPrice);
-   }
+   
+   priceDeviation = MathAbs(((buyPrice + sellPrice)/2) - myMaValue);
+   
 
    
-   if(!tradeStarted && priceDeviation > 800 && priceDataSet)
+   if(!tradeStarted && priceDeviation > 4000 && priceDataSet && numSidesTested == 0)
    {
       tradeStarted = false;
       hedgeBuy = false;
@@ -616,7 +616,7 @@ canTrade = true;
       profitCount = profitCount + interest;
      }
      
-
+/*
      if (debt > maxLoss) //(debt + interest)
      {
       canTrade = false;
@@ -637,7 +637,7 @@ canTrade = true;
       profitCount = profitCount + interest;
            
      }
-     
+     */
     
 
 
