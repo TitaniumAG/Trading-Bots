@@ -203,7 +203,7 @@ int OnInit()
    maxAllowedDist = 150;
    priceRange = 500;
    
-   defaultLotSize = 0.1;
+   defaultLotSize = 0.02;
    lotSize = defaultLotSize;   
    interest = 33;
    maxLoss = 300;
