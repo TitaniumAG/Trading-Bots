@@ -200,7 +200,7 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 150;
+   maxAllowedDist = 60;
    priceRange = 500;
    
    defaultLotSize = 0.02;
@@ -419,6 +419,8 @@ canTrade = true;
    //if(myRSIValue < 31 && myCCIValue < - 100 && currentPrice < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
    if (canTrade && cloudDist > maxAllowedDist && !priceDataSet && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && awaitEntry < 1)
      {
+     if(!tradeStarted)
+        {
      tradeAction = "buy";
      rangeTestCount = 0; 
      buyPrice = currentPrice - m;
@@ -428,6 +430,7 @@ canTrade = true;
      ObjectCreate(0,"My Line2",OBJ_HLINE,0,0,sellPrice);
      priceDataSet = true;
      // Buy hedge prevention because we are already selling! Important!
+     }
       
      }
 ///////////////
@@ -465,7 +468,7 @@ canTrade = true;
    
 
    
-   if(!tradeStarted && priceDeviation > 500 && priceDataSet && numSidesTested == 0)
+   if(!tradeStarted && priceDeviation > 300 && priceDataSet && numSidesTested == 0)
    {
       tradeStarted = false;
       hedgeBuy = false;
