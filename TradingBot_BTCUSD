@@ -200,7 +200,7 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 300;
+   maxAllowedDist = 200;
    priceRange = 500;
    
    defaultLotSize = 0.02;
@@ -411,7 +411,7 @@ canTrade = true;
 
 
    double n = 2;
-   double m = 2000;
+   double m = 1000;
 
 
 // Initial Buy trade; oversold conditions where sentiment is to buy up
@@ -419,6 +419,8 @@ canTrade = true;
    //if(myRSIValue < 31 && myCCIValue < - 100 && currentPrice < spanLow && awaitEntry < 1 && spanWidth > acceptedSpanWidth)
    if (canTrade && cloudDist > maxAllowedDist && !priceDataSet && myRSIValue < 30 && myCCIValue < -100 && day_name != "Friday" && day_name != "Saturday" && day_name != "Sunday" && day_name != "Thursday" && awaitEntry < 1)
      {
+     if(!tradeStarted)
+        {
      tradeAction = "buy";
      rangeTestCount = 0; 
      buyPrice = currentPrice - m;
@@ -428,6 +430,7 @@ canTrade = true;
      ObjectCreate(0,"My Line2",OBJ_HLINE,0,0,sellPrice);
      priceDataSet = true;
      // Buy hedge prevention because we are already selling! Important!
+     }
       
      }
 ///////////////
@@ -465,8 +468,10 @@ canTrade = true;
    
 
    
-   if(!tradeStarted && priceDeviation > 4000 && priceDataSet && numSidesTested == 0)
+   if(!tradeStarted)
    {
+      if (priceDeviation > 2000 && priceDataSet && numSidesTested == 0)
+      {
       tradeStarted = false;
       hedgeBuy = false;
       hedgeSell = false;
@@ -479,6 +484,8 @@ canTrade = true;
       numIncreaseLots = 0;
       profitCount = profitCount + interest;
       priceDataSet = false;
+      printf("Deviation caught");
+      }
    }
 
 
@@ -596,7 +603,7 @@ canTrade = true;
            
      }
      
-     
+     /*
      if(day_name == "Thursday" || day_name == "Friday" || day_name == "Saturday" || day_name == "Sunday")
      {
       priceDataSet = false;
@@ -615,7 +622,7 @@ canTrade = true;
       numIncreaseLots = 0;
       profitCount = profitCount + interest;
      }
-     
+     */
 /*
      if (debt > maxLoss) //(debt + interest)
      {
@@ -670,7 +677,7 @@ canTrade = true;
    string myString;
 
 // Convert bool to string
-   if(tradeStarted)
+   if(priceDataSet)
      {
       myString = "true";
      }
