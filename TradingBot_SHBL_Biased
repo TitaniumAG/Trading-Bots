@@ -119,6 +119,7 @@ double lastPrice;
 int tradeStepIdx;
 int tradePositionCount;
 string tradingBias;
+double lastOpenPrice;
 /*
 void OpenBuyOrder()
    {
@@ -505,6 +506,7 @@ canTrade = true;
               // A new candle has formed, so do something
               tradeStepIdx++; 
               printf(lastPrice);
+              printf(tradeBias);
               //Print("New candle closed!");
               
               
@@ -518,11 +520,22 @@ canTrade = true;
                }
                if(tradingBias == "buy")
                {
+               if(tradeStepIdx == 2){
+               lastOpenPrice = currentPrice;
+               trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+               tradePositionCount++;
+               }
+               if(tradeStepIdx > 2){
+               if(currentPrice < lastOpenPrice){
+               lastOpenPrice = currentPrice;
                trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
                tradePositionCount++;
                }
                }
-               if (currentPrice > lastPrice && myRSIValue > 63)
+               }
+               }
+               
+               if (currentPrice > lastPrice && myRSIValue > 65)
                {
                if(tradingBias == "null")
                {
@@ -530,10 +543,21 @@ canTrade = true;
                }  
                if(tradingBias == "sell")
                {
+               if(tradeStepIdx == 2){
+               lastOpenPrice = currentPrice;
                trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
                tradePositionCount++;
+               }
+               if(tradeStepIdx > 2){
+               if(currentPrice > lastOpenPrice){
+               lastOpenPrice = currentPrice;
+               trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+               tradePositionCount++;
+               }
+               }
                }             
                }
+               
               }
               
                            
@@ -561,7 +585,7 @@ canTrade = true;
          trade.PositionClose(Symbol());
          
          
-         trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         //trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
       
          
           if(numSidesTested < lotStepLimit)
@@ -589,7 +613,7 @@ canTrade = true;
          trade.PositionClose(Symbol());
          
          printf("hello world");
-         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+         //trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          
          
          
@@ -620,8 +644,9 @@ canTrade = true;
    debt = MathAbs(lastPL);
   
    
-   if (PL > (debt + interest)) //(debt + interest)
+   if (PL > interest) //(debt + interest)
      {
+      tradeStepIdx = 0;
       priceDataSet = false;
       priceDeviation = 0;
       tradeStarted = false;
@@ -651,6 +676,7 @@ canTrade = true;
    
    if (tradePositionCount > 10 && PL > -20) //(debt + interest)
      {
+      tradeStepIdx = 0;
       priceDataSet = false;
       priceDeviation = 0;
       tradeStarted = false;
