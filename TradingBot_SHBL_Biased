@@ -111,6 +111,7 @@ double maxDrawdown;
 double priceDeviation;
 double maxLoss;
 double priceDataSet;
+int flowControlIdx;
 
 
 datetime currentBarTime = iTime(_Symbol, _Period, 0);
@@ -212,7 +213,7 @@ int OnInit()
    maxAllowedDist = 200;
    priceRange = 500;
    
-   defaultLotSize = 0.02;
+   defaultLotSize = 0.01;
    lotSize = defaultLotSize;   
    interest = 33;
    maxLoss = 300;
@@ -505,8 +506,7 @@ canTrade = true;
           {
               // A new candle has formed, so do something
               tradeStepIdx++; 
-              printf(lastPrice);
-              printf(tradeBias);
+              Print("flow control: " + flowControlIdx);
               //Print("New candle closed!");
               
               
@@ -514,18 +514,19 @@ canTrade = true;
               {
                if (currentPrice < lastPrice && myRSIValue < 35)
                {
+               flowControlIdx++;
                if(tradingBias == "null")
                {
                tradingBias = "buy";
                }
                if(tradingBias == "buy")
                {
-               if(tradeStepIdx == 2){
+               if(flowControlIdx < 2){
                lastOpenPrice = currentPrice;
                trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
                tradePositionCount++;
                }
-               if(tradeStepIdx > 2){
+               if(flowControlIdx > 2){
                if(currentPrice < lastOpenPrice){
                lastOpenPrice = currentPrice;
                trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
@@ -537,18 +538,19 @@ canTrade = true;
                
                if (currentPrice > lastPrice && myRSIValue > 65)
                {
+               flowControlIdx++;
                if(tradingBias == "null")
                {
                tradingBias = "sell";
                }  
                if(tradingBias == "sell")
                {
-               if(tradeStepIdx == 2){
+               if(flowControlIdx < 2){
                lastOpenPrice = currentPrice;
                trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
                tradePositionCount++;
                }
-               if(tradeStepIdx > 2){
+               if(flowControlIdx > 2){
                if(currentPrice > lastOpenPrice){
                lastOpenPrice = currentPrice;
                trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
@@ -647,6 +649,7 @@ canTrade = true;
    if (PL > interest) //(debt + interest)
      {
       tradeStepIdx = 0;
+      flowControlIdx = 0;
       priceDataSet = false;
       priceDeviation = 0;
       tradeStarted = false;
@@ -677,6 +680,7 @@ canTrade = true;
    if (tradePositionCount > 10 && PL > -20) //(debt + interest)
      {
       tradeStepIdx = 0;
+      flowControlIdx = 0;
       priceDataSet = false;
       priceDeviation = 0;
       tradeStarted = false;
