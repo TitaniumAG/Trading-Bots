@@ -213,9 +213,9 @@ int OnInit()
    maxAllowedDist = 200;
    priceRange = 500;
    
-   defaultLotSize = 0.01;
+   defaultLotSize = 0.02;
    lotSize = defaultLotSize;   
-   interest = 33;
+   interest = 5;
    maxLoss = 300;
    tradingBias = "null";
 
@@ -514,7 +514,9 @@ canTrade = true;
               {
                if (currentPrice < lastPrice && myRSIValue < 35)
                {
+               if(flowControlIdx < 1){
                flowControlIdx++;
+               }
                if(tradingBias == "null")
                {
                tradingBias = "buy";
@@ -538,7 +540,9 @@ canTrade = true;
                
                if (currentPrice > lastPrice && myRSIValue > 65)
                {
+               if(flowControlIdx < 1){
                flowControlIdx++;
+               }
                if(tradingBias == "null")
                {
                tradingBias = "sell";
@@ -564,6 +568,12 @@ canTrade = true;
               
                            
               // Update the lastBarTime to the current bar's time
+              Print("trading bias:" + tradingBias);
+              printf("current price: " + currentPrice);
+              printf("last price: " + lastPrice);
+              if(flowControlIdx >= 1){
+              flowControlIdx++;
+              }
               lastPrice = currentPrice;
               lastBarTime = currentBarTime;
           }
@@ -646,7 +656,7 @@ canTrade = true;
    debt = MathAbs(lastPL);
   
    
-   if (PL > interest) //(debt + interest)
+   if (PL > (debt + interest)) //(debt + interest)
      {
       tradeStepIdx = 0;
       flowControlIdx = 0;
@@ -677,7 +687,7 @@ canTrade = true;
    debt = MathAbs(lastPL);
   
    
-   if (tradePositionCount > 10 && PL > -20) //(debt + interest)
+   if (tradePositionCount > 6 && PL > -19) //(debt + interest)
      {
       tradeStepIdx = 0;
       flowControlIdx = 0;
@@ -686,6 +696,7 @@ canTrade = true;
       tradeStarted = false;
       hedgeBuy = false;
       hedgeSell = false;
+      lastPL = lastPL + PL;
       for(int i=0; i<tradePositionCount; i++)
       {
       trade.PositionClose(Symbol());
@@ -694,9 +705,7 @@ canTrade = true;
       tradingBias = "null";      
       buyPrice = 0;
       sellPrice = 0;
-      lastPL = 0;
       lotSize = defaultLotSize;
-      debt = 0;
       numSidesTested = 0;
       awaitEntry = freqDelay;
       numIncreaseLots = 0;
