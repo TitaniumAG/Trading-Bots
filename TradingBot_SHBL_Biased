@@ -120,7 +120,9 @@ double lastPrice;
 int tradeStepIdx;
 int tradePositionCount;
 string tradingBias;
-double lastOpenPrice;
+double priceStack[];
+int candleCombo;
+
 /*
 void OpenBuyOrder()
    {
@@ -210,10 +212,10 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 200;
+   maxAllowedDist = 500;
    priceRange = 500;
    
-   defaultLotSize = 0.02;
+   defaultLotSize = 0.01;
    lotSize = defaultLotSize;   
    interest = 5;
    maxLoss = 300;
@@ -330,7 +332,7 @@ canTrade = true;
    int myRSIDefinition=iRSI(_Symbol, _Period,14,PRICE_CLOSE);
    int myCCIDefinition=iCCI(_Symbol, _Period,14,PRICE_CLOSE);
    
-   int myMA=iMA(_Symbol,_Period,8,0,MODE_EMA,PRICE_CLOSE);
+   int myMA=iMA(_Symbol,_Period,200,0,MODE_EMA,PRICE_CLOSE);
 
 
 
@@ -499,85 +501,47 @@ canTrade = true;
       }
    }
 
-
+      // candle expiry
+       lastBarTime = currentBarTime;   
+       
+       printf(spanAverage);
+      
       currentBarTime = iTime(_Symbol, _Period, 0);
-         
-         if (currentBarTime != lastBarTime)
-          {
-              // A new candle has formed, so do something
-              tradeStepIdx++; 
-              Print("flow control: " + flowControlIdx);
-              //Print("New candle closed!");
-              
-              
-              if(tradeStepIdx > 1)
-              {
-               if (currentPrice < lastPrice && myRSIValue < 35)
-               {
-               if(flowControlIdx < 1){
-               flowControlIdx++;
-               }
-               if(tradingBias == "null")
-               {
-               tradingBias = "buy";
-               }
-               if(tradingBias == "buy")
-               {
-               if(flowControlIdx < 2){
-               lastOpenPrice = currentPrice;
-               trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-               tradePositionCount++;
-               }
-               if(flowControlIdx > 2){
-               if(currentPrice < lastOpenPrice){
-               lastOpenPrice = currentPrice;
-               trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-               tradePositionCount++;
-               }
-               }
-               }
-               }
-               
-               if (currentPrice > lastPrice && myRSIValue > 65)
-               {
-               if(flowControlIdx < 1){
-               flowControlIdx++;
-               }
-               if(tradingBias == "null")
-               {
-               tradingBias = "sell";
-               }  
-               if(tradingBias == "sell")
-               {
-               if(flowControlIdx < 2){
-               lastOpenPrice = currentPrice;
-               trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-               tradePositionCount++;
-               }
-               if(flowControlIdx > 2){
-               if(currentPrice > lastOpenPrice){
-               lastOpenPrice = currentPrice;
-               trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-               tradePositionCount++;
-               }
-               }
-               }             
-               }
-               
-              }
-              
-                           
-              // Update the lastBarTime to the current bar's time
-              Print("trading bias:" + tradingBias);
-              printf("current price: " + currentPrice);
-              printf("last price: " + lastPrice);
-              if(flowControlIdx >= 1){
-              flowControlIdx++;
-              }
-              lastPrice = currentPrice;
-              lastBarTime = currentBarTime;
-          }
-
+      
+      if (currentBarTime != lastBarTime){
+      
+      // Resize the array to accommodate the new value
+      int newSize = ArraySize(priceStack) + 1;
+      ArrayResize(priceStack, newSize);
+      
+      double value = currentPrice;
+      double lp;
+      double cp;
+    
+      // Add the value to the last position
+      priceStack[newSize - 1] = value;
+      
+      if (ArraySize(priceStack) > 1){
+      
+      //printf("last price: " + priceStack[ArraySize(priceStack)-2]);
+      //printf("current price: " + priceStack[ArraySize(priceStack)-1]);
+      lp = priceStack[ArraySize(priceStack)-2];
+      cp = priceStack[ArraySize(priceStack)-1];
+      
+      
+      if (myRSIValue < 35 && currentPrice > myMaValue){
+      
+      if (cp < lp){
+     
+      tradePositionCount++;
+      trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+      lotSize*=1;
+      }
+      }
+       
+      }      
+      }
+   
 
 
 
@@ -656,7 +620,7 @@ canTrade = true;
    debt = MathAbs(lastPL);
   
    
-   if (PL > (debt + interest)) //(debt + interest)
+   if (PL > (interest)) //(debt + interest)
      {
       tradeStepIdx = 0;
       flowControlIdx = 0;
@@ -665,6 +629,12 @@ canTrade = true;
       tradeStarted = false;
       hedgeBuy = false;
       hedgeSell = false;
+      candleCombo = 0;
+      for(int i = 0; i < tradePositionCount; i++){
+      trade.PositionClose(Symbol());
+      }
+      tradePositionCount = 0;      
+      ArrayResize(priceStack, 0);
       for(int i=0; i<tradePositionCount; i++)
       {
       trade.PositionClose(Symbol());
@@ -685,9 +655,9 @@ canTrade = true;
      
 // stop loss
    debt = MathAbs(lastPL);
-  
+  /*
    
-   if (tradePositionCount > 6 && PL > -19) //(debt + interest)
+   if (tradePositionCount > 5 && PL > -19) //(debt + interest)
      {
       tradeStepIdx = 0;
       flowControlIdx = 0;
@@ -712,7 +682,7 @@ canTrade = true;
       profitCount = profitCount + interest;
            
      }
-     
+     */
      /*
      if(day_name == "Thursday" || day_name == "Friday" || day_name == "Saturday" || day_name == "Sunday")
      {
@@ -809,7 +779,7 @@ canTrade = true;
       "In trade  | "+ myString + "\n"+
       "RSI  | "+DoubleToString(myRSIValue,Digits()+1) + "\n"+
       "CCI  | "+DoubleToString(myCCIValue,Digits()+1) + "\n"+
-      "Wait  | "+DoubleToString(awaitEntry,Digits()+1) + "\n"+
+      "Wait  | "+DoubleToString(awaitEntry,Digits()+1) + "\n"+ 
       "Max chain  | "+DoubleToString(maxRangeTest,Digits()+1) + "\n"+
       "Max drawdown  | "+DoubleToString(maxDrawdown,Digits()+1) + "\n"+
       "Consolidation limit  | "+DoubleToString(consolidationLimit,Digits()+1) + "\n"+
