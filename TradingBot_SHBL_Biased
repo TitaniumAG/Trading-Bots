@@ -529,21 +529,26 @@ canTrade = true;
       lp = priceStack[ArraySize(priceStack)-2];
       cp = priceStack[ArraySize(priceStack)-1];
       
-      
       if (tradingBias == "null" && myRSIValue > 65 && cloudDist > maxAllowedDist && cloudDist < rangeLimit && currentPrice > myMaValue){
+      tradingBias = "sell";
+      }
+      if (tradingBias == "null" && myRSIValue < 35 && cloudDist > maxAllowedDist && cloudDist < rangeLimit && currentPrice < myMaValue){
+      tradingBias = "buy";
+      }
+      
+      
+      if (tradingBias == "sell" && myRSIValue > 65 && cloudDist > maxAllowedDist && cloudDist < rangeLimit && currentPrice > myMaValue){
       
       if (cp > lp){
-      tradingBias = "sell";
       tradePositionCount++;
       trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
       lotSize*=1;
       }
       }
       
-      if (tradingBias == "null" && myRSIValue < 35 && cloudDist > maxAllowedDist && cloudDist < 700 && currentPrice < myMaValue){
+      if (tradingBias == "buy" && myRSIValue < 35 && cloudDist > maxAllowedDist && cloudDist < rangeLimit && currentPrice < myMaValue){
       
       if (cp < lp){
-      tradingBias = "buy";
       tradePositionCount++;
       trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
       lotSize*=1;
