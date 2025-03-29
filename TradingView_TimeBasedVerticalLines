@@ -1,0 +1,83 @@
+//@version=5
+indicator("Time-Based Vertical Lines (GMT, EST & JST)", overlay=true)
+
+// Color and opacity input settings for GMT
+line8AMColor = input.color(color.blue, "8 AM GMT Line Color", inline="8am")
+opacity8AM = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="8am")
+line9AMColor = input.color(color.green, "9 AM GMT Line Color", inline="9am")
+opacity9AM = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="9am")
+
+// Color and opacity settings for EST
+line8AMColorEST = input.color(color.purple, "8 AM EST Line Color", inline="8amEST")
+opacity8AMEST = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="8amEST")
+line9AMColorEST = input.color(color.orange, "9 AM EST Line Color", inline="9amEST")
+opacity9AMEST = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="9amEST")
+
+// Color and opacity settings for JST
+line8AMColorJST = input.color(color.maroon, "8 AM JST Line Color", inline="8amJST")
+opacity8AMJST = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="8amJST")
+line9AMColorJST = input.color(color.teal, "9 AM JST Line Color", inline="9amJST")
+opacity9AMJST = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="9amJST")
+
+// Convert current bar time to GMT hours and minutes
+currentGMTTime = timestamp(year, month, dayofmonth, hour, minute, second)
+currentGMTHour = hour(currentGMTTime, "GMT")
+currentGMTMinute = minute(currentGMTTime, "GMT")
+
+// Calculate EST time (GMT-5)
+currentESTHour = currentGMTHour >= 5 ? currentGMTHour - 5 : currentGMTHour + 19
+
+// Calculate JST time (GMT+9)
+currentJSTHour = currentGMTHour >= 15 ? currentGMTHour - 15 : currentGMTHour + 9
+
+// Apply opacity to colors
+var color TIME_8AM_COLOR = color.new(line8AMColor, opacity8AM)
+var color TIME_9AM_COLOR = color.new(line9AMColor, opacity9AM)
+var color TIME_8AM_COLOR_EST = color.new(line8AMColorEST, opacity8AMEST)
+var color TIME_9AM_COLOR_EST = color.new(line9AMColorEST, opacity9AMEST)
+var color TIME_8AM_COLOR_JST = color.new(line8AMColorJST, opacity8AMJST)
+var color TIME_9AM_COLOR_JST = color.new(line9AMColorJST, opacity9AMJST)
+
+// Text style settings
+var string TEXT_SIZE = size.normal
+var string TEXT_HALIGN = text.align_center
+var string TEXT_VALIGN = text.align_top
+
+// Function to check if current bar is at specific GMT hour
+isGMTHour(targetHour) =>
+    currentGMTHour == targetHour and currentGMTMinute == 0
+
+// Function to check if current bar is at specific EST hour
+isESTHour(targetHour) =>
+    currentESTHour == targetHour and currentGMTMinute == 0
+
+// Function to check if current bar is at specific JST hour
+isJSTHour(targetHour) =>
+    currentJSTHour == targetHour and currentGMTMinute == 0
+
+// Draw GMT vertical lines
+if isGMTHour(8)
+    line.new(x1=bar_index, y1=low - (high - low), x2=bar_index, y2=high + (high - low), color=TIME_8AM_COLOR, width=2)
+    label.new(x=bar_index, y=high + (high - low), text="8 AM GMT", color=TIME_8AM_COLOR, style=label.style_label_down, textcolor=TIME_8AM_COLOR, size=TEXT_SIZE)
+
+if isGMTHour(9)
+    line.new(x1=bar_index, y1=low - (high - low), x2=bar_index, y2=high + (high - low), color=TIME_9AM_COLOR, width=2)
+    label.new(x=bar_index, y=high + (high - low), text="9 AM GMT", color=TIME_9AM_COLOR, style=label.style_label_down, textcolor=TIME_9AM_COLOR, size=TEXT_SIZE)
+
+// Draw EST vertical lines
+if isESTHour(8)
+    line.new(x1=bar_index, y1=low - (high - low), x2=bar_index, y2=high + (high - low), color=TIME_8AM_COLOR_EST, width=2)
+    label.new(x=bar_index, y=high + (high - low), text="8 AM EST", color=TIME_8AM_COLOR_EST, style=label.style_label_down, textcolor=TIME_8AM_COLOR_EST, size=TEXT_SIZE)
+
+if isESTHour(9)
+    line.new(x1=bar_index, y1=low - (high - low), x2=bar_index, y2=high + (high - low), color=TIME_9AM_COLOR_EST, width=2)
+    label.new(x=bar_index, y=high + (high - low), text="9 AM EST", color=TIME_9AM_COLOR_EST, style=label.style_label_down, textcolor=TIME_9AM_COLOR_EST, size=TEXT_SIZE)
+
+// Draw JST vertical lines
+if isJSTHour(8)
+    line.new(x1=bar_index, y1=low - (high - low), x2=bar_index, y2=high + (high - low), color=TIME_8AM_COLOR_JST, width=2)
+    label.new(x=bar_index, y=high + (high - low), text="8 AM JST", color=TIME_8AM_COLOR_JST, style=label.style_label_down, textcolor=TIME_8AM_COLOR_JST, size=TEXT_SIZE)
+
+if isJSTHour(9)
+    line.new(x1=bar_index, y1=low - (high - low), x2=bar_index, y2=high + (high - low), color=TIME_9AM_COLOR_JST, width=2)
+    label.new(x=bar_index, y=high + (high - low), text="9 AM JST", color=TIME_9AM_COLOR_JST, style=label.style_label_down, textcolor=TIME_9AM_COLOR_JST, size=TEXT_SIZE)
