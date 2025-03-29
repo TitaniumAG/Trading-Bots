@@ -212,13 +212,13 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 400;
-   rangeLimit = 700;
+   maxAllowedDist = 200;
+   rangeLimit = 7000;
    priceRange = 500;
    
    defaultLotSize = 0.01;
    lotSize = defaultLotSize;   
-   interest = 2.5;
+   interest = 1;
    maxLoss = 300;
    tradingBias = "null";
 
@@ -291,9 +291,12 @@ MqlDateTime current_time;
 TimeToStruct(TimeLocal(), current_time);
 int hour = current_time.hour;
 //// Check for new day
-if(!canTrade && hour == 0)
+if(hour > 8 && hour < 20)
 {
 canTrade = true;
+}
+else{
+canTrade = false;
 }
 
 // set current price
@@ -498,14 +501,14 @@ canTrade = true;
       numIncreaseLots = 0;
       profitCount = profitCount + interest;
       priceDataSet = false;
-      printf("Deviation caught");
+      
       }
    }
 
       // candle expiry
        lastBarTime = currentBarTime;   
        
-       printf(spanAverage);
+       
       
       currentBarTime = iTime(_Symbol, _Period, 0);
       
@@ -518,43 +521,36 @@ canTrade = true;
       double value = currentPrice;
       double lp;
       double cp;
+      double lp2;
+      double lp3;
     
       // Add the value to the last position
       priceStack[newSize - 1] = value;
       
-      if (ArraySize(priceStack) > 1){
-      
+      if (ArraySize(priceStack) > 3){
       //printf("last price: " + priceStack[ArraySize(priceStack)-2]);
       //printf("current price: " + priceStack[ArraySize(priceStack)-1]);
-      lp = priceStack[ArraySize(priceStack)-2];
       cp = priceStack[ArraySize(priceStack)-1];
+      lp = priceStack[ArraySize(priceStack)-2];
+      lp2 = priceStack[ArraySize(priceStack)-3];
+      lp3 = priceStack[ArraySize(priceStack)-4];
       
-      if (tradingBias == "null" && myRSIValue > 65 && cloudDist > maxAllowedDist && cloudDist < rangeLimit && currentPrice > myMaValue){
+      if (tradingBias == "null" && myRSIValue > 65 && cloudDist > maxAllowedDist && currentPrice > myMaValue){
       tradingBias = "sell";
       }
-      if (tradingBias == "null" && myRSIValue < 35 && cloudDist > maxAllowedDist && cloudDist < rangeLimit && currentPrice < myMaValue){
+      /*
+      if (tradingBias == "null" && myRSIValue < 35 && currentPrice < myMaValue){
       tradingBias = "buy";
       }
+      */
       
+      if (tradingBias == "sell"){
       
-      if (tradingBias == "sell" && myRSIValue > 65 && cloudDist > maxAllowedDist && cloudDist < rangeLimit && currentPrice > myMaValue){
-      
-      if (cp > lp){
+      if (canTrade && cp > lp && lp > lp2){
       tradePositionCount++;
       trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-      lotSize*=1;
       }
-      }
-      
-      if (tradingBias == "buy" && myRSIValue < 35 && cloudDist > maxAllowedDist && cloudDist < rangeLimit && currentPrice < myMaValue){
-      
-      if (cp < lp){
-      tradePositionCount++;
-      trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-      lotSize*=1;
-      }
-      }
-             
+      }       
       }      
       }
    
@@ -582,7 +578,7 @@ canTrade = true;
          
           if(numSidesTested < lotStepLimit)
          { 
-         lotSize  = lotSize * mult;    
+         //lotSize  = lotSize * mult;    
          } 
                   
                   
@@ -604,14 +600,14 @@ canTrade = true;
          lastPL = lastPL + PL;
          trade.PositionClose(Symbol());
          
-         printf("hello world");
+         
          //trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          
          
          
          if(numSidesTested < lotStepLimit)
          { 
-         lotSize  = lotSize * mult; 
+         //lotSize  = lotSize * mult; 
          }
          
                   
@@ -669,8 +665,9 @@ canTrade = true;
            
      }
      
-// stop loss 
-   if (cloudDist > rangeLimit) //(debt + interest)
+// stop loss
+/*
+   if (canTrade == false) //(debt + interest)
      {
       tradeStepIdx = 0;
       flowControlIdx = 0;
@@ -688,14 +685,13 @@ canTrade = true;
       tradingBias = "null";      
       buyPrice = 0;
       sellPrice = 0;
-      lotSize = defaultLotSize;
       numSidesTested = 0;
       awaitEntry = freqDelay;
       numIncreaseLots = 0;
       profitCount = profitCount + interest;
            
      }
-     
+     */
      /*
      if(day_name == "Thursday" || day_name == "Friday" || day_name == "Saturday" || day_name == "Sunday")
      {
@@ -800,7 +796,8 @@ canTrade = true;
       "Price deviation  | "+DoubleToString(priceDeviation,Digits()+1) + "\n"+
       "MA range  | "+DoubleToString(maRange,Digits()+1) + "\n"+
       "Cloud distance | "+DoubleToString(cloudDist,Digits()+1) + "\n"+
-      "Day name  | "+ day_name;
+      "Day name  | "+ day_name + "\n"+
+      "Candle combo | "+IntegerToString(candleCombo,Digits()+1);
 
    Comment(text);
 
