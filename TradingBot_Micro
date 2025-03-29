@@ -538,18 +538,10 @@ canTrade = false;
       if (tradingBias == "null" && myRSIValue > 65 && cloudDist > maxAllowedDist && currentPrice > myMaValue){
       tradingBias = "sell";
       }
-      
       if (tradingBias == "null" && myRSIValue < 35 && cloudDist > maxAllowedDist && currentPrice < myMaValue){
       tradingBias = "buy";
       }
       
-      
-      if (tradingBias == "buy"){
-      
-      if (canTrade && cp < lp && lp < lp2){
-      tradePositionCount++;
-      trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-      }
       
       if (tradingBias == "sell"){
       
@@ -557,9 +549,19 @@ canTrade = false;
       tradePositionCount++;
       trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
       }
-      }
+      } 
       
-      }       
+      if (tradingBias == "buy"){
+      
+      if (canTrade && cp < lp && lp < lp2){
+      tradePositionCount++;
+      trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+      }
+      } 
+      
+      
+      
+            
       }      
       }
    
