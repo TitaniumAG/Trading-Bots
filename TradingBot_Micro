@@ -121,6 +121,8 @@ int tradeStepIdx;
 int tradePositionCount;
 string tradingBias;
 double priceStack[];
+double priceStackOpen[];
+double priceStackClose[];
 int candleCombo;
 double rangeLimit;
 /*
@@ -515,25 +517,40 @@ canTrade = false;
       if (currentBarTime != lastBarTime){
       
       // Resize the array to accommodate the new value
-      int newSize = ArraySize(priceStack) + 1;
-      ArrayResize(priceStack, newSize);
+      int newSizeOpen = ArraySize(priceStackOpen) + 1;
+      ArrayResize(priceStackOpen, newSizeOpen);
+      int newSizeClose = ArraySize(priceStackClose) + 1;
+      ArrayResize(priceStackClose, newSizeClose);
       
-      double value = currentPrice;
-      double lp;
-      double cp;
-      double lp2;
-      double lp3;
-    
-      // Add the value to the last position
-      priceStack[newSize - 1] = value;
       
-      if (ArraySize(priceStack) > 3){
+      // log candle open prices
+      MqlRates lastCandle[];  // Array to store candle data
+
+      // Fetch the last completed candle (index 1)
+      if (CopyRates(Symbol(), PERIOD_CURRENT, 1, 1, lastCandle) > 0) {
+          double openPrice = lastCandle[0].open;   // Open price of last completed candle
+          double closePrice = lastCandle[0].close; // Close price of last completed candle
+          
+          // Add the value to the last position
+          priceStackOpen[newSizeOpen - 1] = openPrice;
+          priceStackClose[newSizeClose - 1] = closePrice;
+          }
+      
+      if (ArraySize(priceStackOpen) > 3){
       //printf("last price: " + priceStack[ArraySize(priceStack)-2]);
       //printf("current price: " + priceStack[ArraySize(priceStack)-1]);
-      cp = priceStack[ArraySize(priceStack)-1];
-      lp = priceStack[ArraySize(priceStack)-2];
-      lp2 = priceStack[ArraySize(priceStack)-3];
-      lp3 = priceStack[ArraySize(priceStack)-4];
+      
+      double lpo = priceStackOpen[ArraySize(priceStackOpen)-1];
+      double lpc = priceStackClose[ArraySize(priceStackClose)-1];
+      
+      double lpo2 = priceStackOpen[ArraySize(priceStackOpen)-2];
+      double lpc2 = priceStackClose[ArraySize(priceStackClose)-2];
+      
+      double lpo3 = priceStackOpen[ArraySize(priceStackOpen)-3];
+      double lpc3 = priceStackClose[ArraySize(priceStackClose)-3];
+      
+      
+      
       
       if (tradingBias == "null" && myRSIValue > 65 && cloudDist > maxAllowedDist && currentPrice > myMaValue){
       tradingBias = "sell";
@@ -545,7 +562,7 @@ canTrade = false;
       
       if (tradingBias == "sell"){
       
-      if (canTrade && cp > lp && lp > lp2){
+      if (canTrade && lpc > lpo && lpc2 > lpo2){
       tradePositionCount++;
       trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
       }
@@ -553,7 +570,7 @@ canTrade = false;
       
       if (tradingBias == "buy"){
       
-      if (canTrade && cp < lp && lp < lp2){
+      if (canTrade && lpc < lpo && lpc2 < lpo2){
       tradePositionCount++;
       trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
       }
@@ -657,7 +674,8 @@ canTrade = false;
       trade.PositionClose(Symbol());
       }
       tradePositionCount = 0;      
-      ArrayResize(priceStack, 0);
+      ArrayResize(priceStackOpen, 0);
+      ArrayResize(priceStackClose, 0);
       for(int i=0; i<tradePositionCount; i++)
       {
       trade.PositionClose(Symbol());
