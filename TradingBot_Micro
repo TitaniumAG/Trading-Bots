@@ -125,6 +125,8 @@ double priceStackOpen[];
 double priceStackClose[];
 int candleCombo;
 double rangeLimit;
+int bullishPoints;
+int bearishPoints;
 /*
 void OpenBuyOrder()
    {
@@ -549,8 +551,28 @@ canTrade = false;
       double lpo3 = priceStackOpen[ArraySize(priceStackOpen)-3];
       double lpc3 = priceStackClose[ArraySize(priceStackClose)-3];
       
-      
-      
+      if (tradingBias != "null")
+      {
+         
+         if(currentPrice > myMaValue)
+         {
+            bullishPoints++;
+         }
+         if(currentPrice < myMaValue)
+         {  
+            bearishPoints++;
+         }
+         
+         if(bullishPoints % 20 == 0)
+         {
+            tradingBias = "sell";
+         }
+         if(bearishPoints % 20 == 0)
+         {
+            tradingBias = "buy";
+         }
+      }
+      Print(tradingBias);
       
       if (tradingBias == "null" && myRSIValue > 65 && cloudDist > maxAllowedDist && currentPrice > myMaValue){
       tradingBias = "sell";
