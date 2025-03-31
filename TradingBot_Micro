@@ -557,19 +557,21 @@ canTrade = false;
          if(currentPrice > myMaValue)
          {
             bullishPoints++;
+            bearishPoints = 0;
          }
          if(currentPrice < myMaValue)
          {  
             bearishPoints++;
+            bullishPoints = 0;
          }
          
          if(bullishPoints % 20 == 0)
          {
-            tradingBias = "sell";
+            tradingBias = "buy";
          }
          if(bearishPoints % 20 == 0)
          {
-            tradingBias = "buy";
+            tradingBias = "sell";
          }
       }
       Print(tradingBias);
