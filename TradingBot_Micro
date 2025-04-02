@@ -217,13 +217,13 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 200;
+   maxAllowedDist = 400;
    rangeLimit = 7000;
    priceRange = 500;
    
    defaultLotSize = 0.01;
    lotSize = defaultLotSize;   
-   interest = 1;
+   interest = 2;
    maxLoss = 300;
    tradingBias = "null";
 
@@ -578,7 +578,7 @@ canTrade = false;
             tradingBias = "sell";
          }
       }
-      Print(tradingBias);
+      Print(MathAbs(lpo-lpc));
       
       if (tradingBias == "null" && myRSIValue > 65 && cloudDist > maxAllowedDist && currentPrice > myMaValue){
       tradingBias = "sell";
@@ -587,19 +587,20 @@ canTrade = false;
       tradingBias = "buy";
       }
       
+      double candleMaxSize = 5;
       
-      if (tradingBias == "sell"){
+      if (tradingBias == "sell" && currentPrice > myMaValue){
       
-      if (canTrade && lpc > lpo && lpc2 > lpo2){
+      if (canTrade && MathAbs(lpc - lpo) > candleMaxSize && MathAbs(lpc2 - lpo2) > candleMaxSize && MathAbs(lpc3 - lpo3) > candleMaxSize && lpc > lpo && lpc2 > lpo2 && lpc3 > lpo3){
       tradePositionCount++;
       trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
       tradeActive = true;
       }
       } 
       
-      if (tradingBias == "buy"){
+      if (tradingBias == "buy" && currentPrice < myMaValue){
       
-      if (canTrade && lpc < lpo && lpc2 < lpo2){
+      if (canTrade && MathAbs(lpc - lpo) > candleMaxSize && MathAbs(lpc2 - lpo2) > candleMaxSize && MathAbs(lpc3 - lpo3) > candleMaxSize && lpc < lpo && lpc2 < lpo2 && lpc3 < lpo3){
       tradePositionCount++;
       trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
       tradeActive = true;
