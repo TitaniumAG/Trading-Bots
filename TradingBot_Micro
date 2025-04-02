@@ -127,6 +127,7 @@ int candleCombo;
 double rangeLimit;
 int bullishPoints;
 int bearishPoints;
+bool tradeActive;
 /*
 void OpenBuyOrder()
    {
@@ -565,11 +566,14 @@ canTrade = false;
             bullishPoints = 0;
          }
          
-         if(bullishPoints % 20 == 0)
+         
+         
+         if(!tradeActive && bullishPoints % 20 == 0)
          {
             tradingBias = "buy";
          }
-         if(bearishPoints % 20 == 0)
+         
+         if(!tradeActive && bearishPoints % 20 == 0)
          {
             tradingBias = "sell";
          }
@@ -589,6 +593,7 @@ canTrade = false;
       if (canTrade && lpc > lpo && lpc2 > lpo2){
       tradePositionCount++;
       trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+      tradeActive = true;
       }
       } 
       
@@ -597,6 +602,7 @@ canTrade = false;
       if (canTrade && lpc < lpo && lpc2 < lpo2){
       tradePositionCount++;
       trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+      tradeActive = true;
       }
       } 
       
@@ -700,11 +706,7 @@ canTrade = false;
       tradePositionCount = 0;      
       ArrayResize(priceStackOpen, 0);
       ArrayResize(priceStackClose, 0);
-      for(int i=0; i<tradePositionCount; i++)
-      {
-      trade.PositionClose(Symbol());
-      }
-      tradePositionCount = 0;
+      tradeActive = true;
       tradingBias = "null";      
       buyPrice = 0;
       sellPrice = 0;
