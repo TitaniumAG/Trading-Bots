@@ -223,7 +223,7 @@ int OnInit()
    
    defaultLotSize = 0.01;
    lotSize = defaultLotSize;   
-   interest = 2;
+   interest = 1;
    maxLoss = 300;
    tradingBias = "null";
 
@@ -589,7 +589,7 @@ canTrade = false;
       
       double candleMaxSize = 5;
       
-      if (tradingBias == "sell" && currentPrice > myMaValue){
+      if (tradePositionCount < 12 && tradingBias == "sell" && currentPrice > myMaValue){
       
       if (canTrade && MathAbs(lpc - lpo) > candleMaxSize && MathAbs(lpc2 - lpo2) > candleMaxSize && MathAbs(lpc3 - lpo3) > candleMaxSize && lpc > lpo && lpc2 > lpo2 && lpc3 > lpo3){
       tradePositionCount++;
@@ -598,7 +598,7 @@ canTrade = false;
       }
       } 
       
-      if (tradingBias == "buy" && currentPrice < myMaValue){
+      if (tradePositionCount < 12 && tradingBias == "buy" && currentPrice < myMaValue){
       
       if (canTrade && MathAbs(lpc - lpo) > candleMaxSize && MathAbs(lpc2 - lpo2) > candleMaxSize && MathAbs(lpc3 - lpo3) > candleMaxSize && lpc < lpo && lpc2 < lpo2 && lpc3 < lpo3){
       tradePositionCount++;
