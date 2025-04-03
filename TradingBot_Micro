@@ -218,7 +218,7 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 400;
+   maxAllowedDist = 200;
    rangeLimit = 7000;
    priceRange = 500;
    
@@ -556,25 +556,25 @@ canTrade = false;
       if (botPrimed)
       {
          
-         if(currentPrice > myMaValue && cloudDist > maxAllowedDist)
+         if(currentPrice > myMaValue)
          {
             bullishPoints++;
             bearishPoints = 0;
          }
-         if(currentPrice < myMaValue && cloudDist > maxAllowedDist)
+         if(currentPrice < myMaValue)
          {  
             bearishPoints++;
             bullishPoints = 0;
          }
          
          
-         
-         if(!tradeActive && bullishPoints % 10 == 0)
+         int waitEntry = 2;
+         if(!tradeActive && bullishPoints % waitEntry == 0)
          {
             tradingBias = "buy";
          }
          
-         if(!tradeActive && bearishPoints % 10 == 0)
+         if(!tradeActive && bearishPoints % waitEntry == 0)
          {
             tradingBias = "sell";
          }
