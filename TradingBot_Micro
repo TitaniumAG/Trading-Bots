@@ -579,7 +579,8 @@ canTrade = false;
             tradingBias = "sell";
          }
       }
-      Print(tradingBias);
+      Print("trading bias: " + tradingBias);
+      printf("trading range: " + DoubleToString(MathAbs(currentPrice - myMaValue)));
       
       if (tradingBias == "null" && myRSIValue > 65 && cloudDist > maxAllowedDist && currentPrice > myMaValue){
       botPrimed = true;
