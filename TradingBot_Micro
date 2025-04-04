@@ -218,13 +218,13 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 200;
+   maxAllowedDist = 400;
    rangeLimit = 7000;
    priceRange = 500;
    
    defaultLotSize = 0.01;
    lotSize = defaultLotSize;   
-   interest = 1;
+   interest = 2;
    maxLoss = 300;
    tradingBias = "null";
 
@@ -429,7 +429,7 @@ canTrade = false;
    
    //ObjectCreate(0,"My Line",OBJ_HLINE,0,0,spanAverage);
    
-   double cloudDist = MathAbs(currentPrice - myMaValue);
+   double cloudDist = MathAbs(currentPrice - spanAverage);
    
 
 
