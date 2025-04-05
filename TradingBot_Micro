@@ -129,6 +129,7 @@ int bullishPoints;
 int bearishPoints;
 bool tradeActive;
 bool botPrimed;
+double finalPriceLevel;
 /*
 void OpenBuyOrder()
    {
@@ -567,7 +568,7 @@ canTrade = false;
       
       double candleMaxSize = 1;
       
-      if (tradePositionCount < 11 && tradingBias == "sell" && currentPrice > myMaValue){
+      if (tradePositionCount < 10 && tradingBias == "sell" && currentPrice > myMaValue){
       
       if (lpc > lpo && lpc2 > lpo2 && lpc3 > lpo3){
       tradePositionCount++;
@@ -576,7 +577,7 @@ canTrade = false;
       }
       } 
       
-      if (tradePositionCount < 11 && tradingBias == "buy" && currentPrice < myMaValue){
+      if (tradePositionCount < 10 && tradingBias == "buy" && currentPrice < myMaValue){
       
       if (lpc < lpo && lpc2 < lpo2 && lpc3 < lpo3){
       tradePositionCount++;
@@ -584,6 +585,19 @@ canTrade = false;
       tradeActive = true;
       }
       } 
+      
+      
+      
+      
+      if(tradePositionCount == 10)
+      {  
+         if(finalPriceLevel < 1){
+         finalPriceLevel = currentPrice;
+         }
+         Print("Final price you are willing to buy or sell at: " + DoubleToString(finalPriceLevel));
+      }
+      
+      
       
       
       
@@ -766,6 +780,77 @@ canTrade = false;
       numIncreaseLots = 0;
       profitCount = profitCount + interest;
            
+     }
+     
+     
+     
+     double willingCutOffset = 1000;
+     
+     
+     if (tradingBias == "sell" && finalPriceLevel > 0 && currentPrice > finalPriceLevel + willingCutOffset)
+     {
+      botPrimed = false;
+      tradeStepIdx = 0;
+      flowControlIdx = 0;
+      priceDataSet = false;
+      priceDeviation = 0;
+      tradeStarted = false;
+      hedgeBuy = false;
+      hedgeSell = false;
+      candleCombo = 0;
+      for(int i = 0; i < tradePositionCount; i++){
+      trade.PositionClose(Symbol());
+      }
+      tradePositionCount = 0;      
+      ArrayResize(priceStackOpen, 0);
+      ArrayResize(priceStackClose, 0);
+      tradeActive = false;
+      tradingBias = "null";
+      bearishPoints = 0;
+      bearishPoints = 0;      
+      buyPrice = 0;
+      sellPrice = 0;
+      lastPL = 0;
+      lotSize = defaultLotSize;
+      debt = 0;
+      numSidesTested = 0;
+      awaitEntry = freqDelay;
+      numIncreaseLots = 0;
+      profitCount = profitCount + interest;
+      finalPriceLevel = 0;           
+     }
+     
+     if (tradingBias == "buy" && finalPriceLevel > 0 && currentPrice < finalPriceLevel - willingCutOffset)
+     {
+      botPrimed = false;
+      tradeStepIdx = 0;
+      flowControlIdx = 0;
+      priceDataSet = false;
+      priceDeviation = 0;
+      tradeStarted = false;
+      hedgeBuy = false;
+      hedgeSell = false;
+      candleCombo = 0;
+      for(int i = 0; i < tradePositionCount; i++){
+      trade.PositionClose(Symbol());
+      }
+      tradePositionCount = 0;      
+      ArrayResize(priceStackOpen, 0);
+      ArrayResize(priceStackClose, 0);
+      tradeActive = false;
+      tradingBias = "null";
+      bearishPoints = 0;
+      bearishPoints = 0;      
+      buyPrice = 0;
+      sellPrice = 0;
+      lastPL = 0;
+      lotSize = defaultLotSize;
+      debt = 0;
+      numSidesTested = 0;
+      awaitEntry = freqDelay;
+      numIncreaseLots = 0;
+      profitCount = profitCount + interest;
+      finalPriceLevel = 0;           
      }
      
      
