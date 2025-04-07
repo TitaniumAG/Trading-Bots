@@ -123,6 +123,9 @@ string tradingBias;
 double priceStack[];
 double priceStackOpen[];
 double priceStackClose[];
+double weeklyPriceStack[];
+double weeklyPriceStackOpen[];
+double weeklyPriceStackClose[];
 int candleCombo;
 double rangeLimit;
 int bullishPoints;
@@ -219,7 +222,7 @@ int OnInit()
    rangeTestCount = 0;
    mult = 2;
    consolidationLimit = 100;
-   maxAllowedDist = 400;
+   maxAllowedDist = 500;
    rangeLimit = 7000;
    priceRange = 500;
    
@@ -344,6 +347,14 @@ canTrade = false;
    int myCCIDefinition=iCCI(_Symbol, _Period,14,PRICE_CLOSE);
    
    int myMA=iMA(_Symbol,_Period,200,0,MODE_SMA,PRICE_CLOSE);
+   
+   int myStochHandle = iStochastic(_Symbol, _Period, 5, 3, 3, MODE_SMA, STO_LOWHIGH);
+   double stochMain[], stochSignal[];
+   CopyBuffer(myStochHandle, 0, 0, 3, stochMain);   // %K line
+   CopyBuffer(myStochHandle, 1, 0, 3, stochSignal); // %D line
+   double myStochValue=stochMain[0];
+   
+   
 
 
 
@@ -522,14 +533,20 @@ canTrade = false;
       if (currentBarTime != lastBarTime){
       
       // Resize the array to accommodate the new value
-      int newSizeOpen = ArraySize(priceStackOpen) + 1;
+      int newSizeOpen = ArraySize(priceStackOpen) + 1;      
       ArrayResize(priceStackOpen, newSizeOpen);
       int newSizeClose = ArraySize(priceStackClose) + 1;
-      ArrayResize(priceStackClose, newSizeClose);
+      ArrayResize(priceStackClose, newSizeClose); 
+      
+      int newSizeOpenWeekly = ArraySize(weeklyPriceStackOpen) + 1;
+      ArrayResize(weeklyPriceStackOpen, newSizeOpenWeekly);
+      int newSizeCloseWeekly = ArraySize(weeklyPriceStackClose) + 1;
+      ArrayResize(weeklyPriceStackClose, newSizeCloseWeekly);
       
       
       // log candle open prices
       MqlRates lastCandle[];  // Array to store candle data
+      MqlRates lastCandleWeekly[];  // Array to store candle data
 
       // Fetch the last completed candle (index 1)
       if (CopyRates(Symbol(), PERIOD_CURRENT, 1, 1, lastCandle) > 0) {
@@ -540,6 +557,31 @@ canTrade = false;
           priceStackOpen[newSizeOpen - 1] = openPrice;
           priceStackClose[newSizeClose - 1] = closePrice;
           }
+          
+      // Fetch the last completed candle (index 1)
+      if (CopyRates(Symbol(), PERIOD_W1, 0, 1, lastCandleWeekly) > 0) {
+          double weeklyOpen = lastCandleWeekly[0].open;   // Open price of last completed candle
+          double weeklyClose = lastCandleWeekly[0].close;  // Close price of last completed candle
+          
+          // Add the value to the last position
+          weeklyPriceStackOpen[newSizeOpenWeekly - 1] = weeklyOpen;
+          weeklyPriceStackClose[newSizeCloseWeekly - 1] = weeklyClose;
+          }
+          
+      double wpo = weeklyPriceStackOpen[ArraySize(weeklyPriceStackOpen)-1];
+      double wpc = weeklyPriceStackClose[ArraySize(weeklyPriceStackClose)-1];
+      bool bullish = wpo < wpc;
+      bool bearish = wpo > wpc;
+      
+      
+      if(bullish)
+      {
+         Print("Confluence:  Bullish");
+      }
+      if(bearish)
+      {
+         Print("Confluence:  Bearish");
+      }
       
       if (ArraySize(priceStackOpen) > 3){
       //printf("last price: " + priceStack[ArraySize(priceStack)-2]);
@@ -556,19 +598,19 @@ canTrade = false;
       
       
       
-      Print("trading bias: " + tradingBias);
       
       
-      if (tradingBias == "null" && myRSIValue > 65 && currentPrice > myMaValue && cloudDist > maxAllowedDist){
+      
+      if (tradingBias == "null" && myRSIValue > 65 && myStochValue > 80 && myCCIValue > 100 && currentPrice > myMaValue && cloudDist > maxAllowedDist){
       tradingBias = "sell";
       }
-      if (tradingBias == "null" && myRSIValue < 35 && currentPrice < myMaValue && cloudDist > maxAllowedDist){
+      if (tradingBias == "null" && myRSIValue < 35 && myStochValue < 20 && myCCIValue < -100 && currentPrice < myMaValue && cloudDist > maxAllowedDist){
       tradingBias = "buy";
       }
       
       double candleMaxSize = 1;
       
-      if (tradePositionCount < 10 && tradingBias == "sell" && currentPrice > myMaValue){
+      if (bearish && tradePositionCount < 10 && tradingBias == "sell" && currentPrice > myMaValue){
       
       if (lpc > lpo && lpc2 > lpo2 && lpc3 > lpo3){
       tradePositionCount++;
@@ -577,7 +619,7 @@ canTrade = false;
       }
       } 
       
-      if (tradePositionCount < 10 && tradingBias == "buy" && currentPrice < myMaValue){
+      if (bullish && tradePositionCount < 10 && tradingBias == "buy" && currentPrice < myMaValue){
       
       if (lpc < lpo && lpc2 < lpo2 && lpc3 < lpo3){
       tradePositionCount++;
@@ -594,7 +636,7 @@ canTrade = false;
          if(finalPriceLevel < 1){
          finalPriceLevel = currentPrice;
          }
-         Print("Final price you are willing to buy or sell at: " + DoubleToString(finalPriceLevel));
+         
       }
       
       
@@ -798,6 +840,7 @@ canTrade = false;
       hedgeBuy = false;
       hedgeSell = false;
       candleCombo = 0;
+      lastPL -= PL;
       for(int i = 0; i < tradePositionCount; i++){
       trade.PositionClose(Symbol());
       }
@@ -810,9 +853,7 @@ canTrade = false;
       bearishPoints = 0;      
       buyPrice = 0;
       sellPrice = 0;
-      lastPL = 0;
       lotSize = defaultLotSize;
-      debt = 0;
       numSidesTested = 0;
       awaitEntry = freqDelay;
       numIncreaseLots = 0;
@@ -831,6 +872,7 @@ canTrade = false;
       hedgeBuy = false;
       hedgeSell = false;
       candleCombo = 0;
+      lastPL -= PL;
       for(int i = 0; i < tradePositionCount; i++){
       trade.PositionClose(Symbol());
       }
@@ -843,9 +885,7 @@ canTrade = false;
       bearishPoints = 0;      
       buyPrice = 0;
       sellPrice = 0;
-      lastPL = 0;
       lotSize = defaultLotSize;
-      debt = 0;
       numSidesTested = 0;
       awaitEntry = freqDelay;
       numIncreaseLots = 0;
