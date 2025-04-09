@@ -423,11 +423,11 @@ if(!tradeStarted && !priceDataSet && myAtrValue > maxAtr)
 if(currentPrice < priceLevel100  && currentPrice > priceLevel0 )
 {
 oldOpenPrice = openPrice;
-setupBuyPrice = priceLevel100 + (myAtrValue*reversalScale)*2;
-setupSellPrice = priceLevel0 - (myAtrValue*reversalScale)*2;
+setupBuyPrice = priceLevel100;
+setupSellPrice = priceLevel0;
 capturedATRValue = myAtrValue;
-buyStopPrice = priceLevel100;//(priceLevel100 - (myAtrValue*reversalScale));
-sellStopPrice = priceLevel0;//(priceLevel0 - (myAtrValue*reversalScale));
+buyStopPrice = (priceLevel100 - (myAtrValue*reversalScale));
+sellStopPrice = (priceLevel0 + (myAtrValue*reversalScale));
 ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
 ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 ObjectCreate(0,"buyStopPrice",OBJ_HLINE,0,0,buyStopPrice);
