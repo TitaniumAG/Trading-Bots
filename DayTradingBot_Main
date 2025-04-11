@@ -488,11 +488,11 @@ if(tradeEnabled && currentPrice < sellStopPrice)
 //ObjectCreate(0,"buyPrice",OBJ_HLINE,0,0,buyPrice);
 //ObjectCreate(0,"sellPrice",OBJ_HLINE,0,0,sellPrice);
    
-    
+debt = MathAbs(lastPL);       
 ////////////////////////////////////
 // starting the trades
 // Selling
-   if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
+   if(debt < 380 && !hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
      {   
              
 
@@ -521,8 +521,9 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
-         
-         lotSize+=lotScalingOffset;         
+         if(lotSize < 0.16){
+         lotSize+=lotScalingOffset;
+         }         
          }
          
          
@@ -535,7 +536,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
              
      }
 // Buying
-   if(!hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
+   if(debt < 380 && !hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
      {
          
          
@@ -563,8 +564,9 @@ if(tradeEnabled && currentPrice < sellStopPrice)
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {
-         
+         if(lotSize < 0.16){
          lotSize+=lotScalingOffset;
+         }
          }
          
          
@@ -581,7 +583,7 @@ if(tradeEnabled && currentPrice < sellStopPrice)
      
      
 //locking profit 
-debt = MathAbs(lastPL);     
+  
 /*    
      
      // closing trades #3333
