@@ -71,6 +71,7 @@ double priceRange;
 double priceMovePercentage;
 int numSidesTested;
 input bool tradeEnabled = false;
+input double maxLoss = 400;
 //input bool tradeReversals = false;
 double reversalBuySL = 0;
 double reversalSellSL = 0;
@@ -126,7 +127,6 @@ double ma2;
 double maGradient;
 double maDist;
 double defaultMaxLoss;
-double maxLoss;
 double unrealisedProfit;
 double realisedProfit;
 bool seekingProfit;
@@ -262,7 +262,6 @@ int OnInit()
    maxAllowedDist = 2;
    posCount = 1;
    defaultMaxLoss = 200;
-   maxLoss = defaultMaxLoss;
    defaultTrailingStop = 1;
    trailingStop = defaultTrailingStop;
    buyPrice = 100000;
@@ -492,7 +491,7 @@ debt = MathAbs(lastPL);
 ////////////////////////////////////
 // starting the trades
 // Selling
-   if(debt < 380 && !hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
+   if(debt < maxLoss && !hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
      {   
              
 
@@ -521,7 +520,7 @@ debt = MathAbs(lastPL);
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0)
          {
-         if(lotSize < 0.16){
+         if(lotSize < 0.1){
          lotSize+=lotScalingOffset;
          }         
          }
@@ -536,7 +535,7 @@ debt = MathAbs(lastPL);
              
      }
 // Buying
-   if(debt < 380 && !hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
+   if(debt < maxLoss && !hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
      {
          
          
@@ -564,7 +563,7 @@ debt = MathAbs(lastPL);
          
          if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
          {
-         if(lotSize < 0.16){
+         if(lotSize < 0.1){
          lotSize+=lotScalingOffset;
          }
          }
