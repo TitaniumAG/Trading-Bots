@@ -73,7 +73,7 @@ int numSidesTested;
 input double profitTarget;
 input int positionCount;
 input double defaultLotSize;
-input double lotScalingOffset;
+input double lotScalingOffset = 2;
 double lotSize;
 double maxTrendingDuration;
 double tradingFrequency;
@@ -528,7 +528,7 @@ if(!analysing && currentPrice < sellStopPrice)
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          */   
-         
+         lotSize*=lotScalingOffset;
          
          
          hedgeBuy = false;
@@ -566,7 +566,7 @@ if(!analysing && currentPrice < sellStopPrice)
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          */
          
-      
+         lotSize*=lotScalingOffset;
          
          
          
