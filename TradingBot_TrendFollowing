@@ -797,6 +797,8 @@ if(!analysing && myMaValue < sellStopPrice)
       trade.PositionClose(Symbol()); 
       }
       tradePositionCount = 0;
+      trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+      tradePositionCount++;
       tradingBias = "sell";
       }
       
@@ -808,6 +810,8 @@ if(!analysing && myMaValue < sellStopPrice)
       trade.PositionClose(Symbol()); 
       }
       tradePositionCount = 0;
+      trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
+      tradePositionCount++;
       tradingBias = "buy";
       }
       
