@@ -14,9 +14,9 @@ line9AMColorEST = input.color(color.orange, "9 AM EST Line Color", inline="9amES
 opacity9AMEST = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="9amEST")
 
 // Color and opacity settings for JST
-line8AMColorJST = input.color(color.maroon, "8 AM JST Line Color", inline="8amJST")
+line8AMColorJST = input.color(color.rgb(255, 0, 0), "8 AM JST Line Color", inline="8amJST")
 opacity8AMJST = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="8amJST")
-line9AMColorJST = input.color(color.teal, "9 AM JST Line Color", inline="9amJST")
+line9AMColorJST = input.color(color.rgb(255, 255, 255), "9 AM JST Line Color", inline="9amJST")
 opacity9AMJST = input.int(30, "Opacity (%)", minval=0, maxval=100, inline="9amJST")
 
 // Convert current bar time to GMT hours and minutes
