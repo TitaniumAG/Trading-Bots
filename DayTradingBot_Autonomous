@@ -70,9 +70,9 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-input double profitTarget;
-input int positionCount;
-input double defaultLotSize;
+input double profitTarget = 3;
+input int positionCount = 1;
+input double defaultLotSize = 0.01;
 input double lotScalingOffset = 2;
 double lotSize;
 double maxTrendingDuration;
@@ -91,8 +91,7 @@ double p1;
 double p2;
 double p3;
 double pStep;
-string tradeConfluence = "null";
-string tradeBias = "null";
+string tradeBias;
 bool biasSellSet;
 bool biasBuySet;
 
@@ -163,8 +162,6 @@ double capturedATRValue;
 static int ticketStack[];
 bool analysing;
 double profitTargetShadow;
-bool breakoutAttempted;
-bool tradeActive;
 
 /*
 void OpenBuyOrder()
@@ -399,7 +396,6 @@ CopyBuffer(myAtr,0,0,3,myAtrArray);
 double myAtrValue=myAtrArray[0];
 
 
-
 // trade entry conditions #0000
 
 double midLevel =(((priceLevel100 + priceLevel0)*0.5));
@@ -422,7 +418,6 @@ color LineColorP3 = clrRed;
 
 priceRange = (buyPrice - sellPrice);
 priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
-
 
 if(!tradeStarted && !priceDataSet && awaitEntry < 1 && myAtrValue > maxAtr)
 {
@@ -488,24 +483,11 @@ if(!analysing && currentPrice < sellStopPrice)
 
 }
 
-if (priceDataSet && !tradeActive)
-{
-if(currentPrice > (setupBuyPrice + setupSellPrice)/2)
-{
-   tradeConfluence = "bullish";
-   buyPrice = setupBuyPrice;
-   sellPrice = buyStopPrice;
-}
-if(currentPrice < (setupBuyPrice + setupSellPrice)/2)
-{
-   tradeConfluence = "bearish";
-   buyPrice = sellStopPrice;
-   sellPrice = setupSellPrice;
-}
-}
 
-Print(tradeConfluence);
-Print(tradeActive);
+
+
+
+
 
 
 //buyPrice = currentPrice + 50; 
@@ -519,24 +501,13 @@ Print(tradeActive);
 // Selling
    if(!hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
      {   
-   
-         
-         if(tradeConfluence == "bearish"){
-         breakoutAttempted = true;
-         }
-         
-         if(tradeConfluence == "bullish"){
-         tradeActive = false;
-         hedgeBuy = false;
-         hedgeSell = false;
-         }
+             
+
+         numSidesTested++;
+         rangeTestCount++;
+         numIncreaseLots++;
+         lastPL-=PL;
         
-         
-         if(tradeConfluence == "bearish"){
-         numSidesTested++;
-         rangeTestCount++;
-         numIncreaseLots++;
-         lastPL-=PL;
          for(int i = 0; i < positionCount; i++)
          {
          trade.PositionClose(Symbol()); 
@@ -544,33 +515,6 @@ Print(tradeActive);
          for(int i = 0; i < positionCount; i++)
          {
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         tradeActive = true;
-         }
-         
-         /* specific close only
-         for (int i = 0; i < ArraySize(ticketStack); i++)
-         {
-         trade.PositionClose(ticketStack[i],-1);
-         }
-         trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         ulong tradeTicket = trade.ResultOrder();
-         ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
-         ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
-         */  
-         }
-         
-         if(tradeConfluence == "bullish" && breakoutAttempted){
-         numSidesTested++;
-         rangeTestCount++;
-         numIncreaseLots++;
-         lastPL-=PL;
-         for(int i = 0; i < positionCount; i++)
-         {
-         trade.PositionClose(Symbol()); 
-         }
-         for(int i = 0; i < positionCount; i++)
-         {
-         //trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
          }
          
          /* specific close only
@@ -583,10 +527,7 @@ Print(tradeActive);
          ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          */   
-         if(lotSize < 0.1){ 
          lotSize*=lotScalingOffset;
-         }
-         }
          
          
          hedgeBuy = false;
@@ -599,24 +540,11 @@ Print(tradeActive);
      {
          
          
-         
-         
-         if(tradeConfluence == "bullish"){
-         breakoutAttempted = true;
-         }
-         
-         if(tradeConfluence == "bearish"){
-         tradeActive = false;
-         hedgeBuy = false;
-         hedgeSell = false;
-         }
-         
-         
-         if (tradeConfluence == "bullish"){   
          numSidesTested++;
          rangeTestCount++;
          numIncreaseLots++;
-         lastPL-=PL;     
+         lastPL-=PL;
+         
          for(int i = 0; i < positionCount; i++)
          {
          trade.PositionClose(Symbol()); 
@@ -624,7 +552,6 @@ Print(tradeActive);
          for(int i = 0; i < positionCount; i++)
          {
          trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         tradeActive = true;
          }
          
          /* specific close only
@@ -638,38 +565,8 @@ Print(tradeActive);
          ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
          */
          
-         
-         }
-         
-         
-         if (tradeConfluence == "bearish" && breakoutAttempted){      
-         numSidesTested++;
-         rangeTestCount++;
-         numIncreaseLots++;
-         lastPL-=PL;  
-         for(int i = 0; i < positionCount; i++)
-         {
-         trade.PositionClose(Symbol()); 
-         }
-         for(int i = 0; i < positionCount; i++)
-         {
-         //trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         }
-         
-         /* specific close only
-         for (int i = 0; i < ArraySize(ticketStack); i++)
-         {
-         trade.PositionClose(ticketStack[i],-1);
-         }
-         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         ulong tradeTicket = trade.ResultOrder();
-         ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
-         ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
-         */
-         if(lotSize < 0.1){ 
          lotSize*=lotScalingOffset;
-         }         
-         }
+         
          
          
          
@@ -694,7 +591,6 @@ debt = MathAbs(lastPL);
       tradePrimed = false;
       hedgeBuy = false;  
       hedgeSell = false;
-      tradeActive = false;
       for(int i = 0; i < positionCount; i++)
       {
       trade.PositionClose(Symbol()); 
@@ -732,9 +628,6 @@ debt = MathAbs(lastPL);
         // closing trades #3333
      if (PL > (debt + profitTarget))
      {
-      breakoutAttempted = false;
-      tradeConfluence = "null";
-      tradeBias = "null";
       analysing = true;
       tradePrimed = false;
       hedgeBuy = false;  
