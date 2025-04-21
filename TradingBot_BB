@@ -145,7 +145,7 @@ bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
 double Multiplier;
-input double reversalScale;
+input double reversalScale = 2;
 input double channelThreshold = 700;
 //input int candleAnalysisCount;
 double setupBuyPrice;
