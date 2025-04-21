@@ -271,7 +271,6 @@ int OnInit()
    //candleAnalysisCount = 110;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
    maxAtr = 0;
-   tradeComplete = false;
    lossComplete = false;
    
    
@@ -281,7 +280,8 @@ int OnInit()
    lotSize = defaultLotSize;
    scaling = 2;
    Multiplier = 3;
-   analysing = false;
+   analysing = true;
+   tradeComplete = true;
    profitTargetShadow = profitTarget;
 
 
