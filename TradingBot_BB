@@ -70,8 +70,9 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-input double profitTarget = 3;
-input int positionCount = 1;
+input double profitTarget = 10;
+//input int positionCount = 1;
+int positionCount = 1;
 input double defaultLotSize = 0.01;
 input double lotScalingOffset = 2;
 double lotSize;
@@ -145,7 +146,8 @@ double oldOpenPrice;
 double maxDeviation;
 double Multiplier;
 input double reversalScale;
-input int candleAnalysisCount;
+input double channelThreshold = 700;
+//input int candleAnalysisCount;
 double setupBuyPrice;
 double setupSellPrice;
 double assetScaling;
@@ -611,7 +613,7 @@ debt = MathAbs(lastPL);
      
      // closing trades #3333
      //if (tradeComplete && currentPrice > (sellStopPrice + (capturedATRValue * reversalScale)) && currentPrice < (buyStopPrice - (capturedATRValue * reversalScale)))
-     if (tradeComplete && currentPrice > sellStopPrice && currentPrice <(buyStopPrice) && priceRange > 700)
+     if (tradeComplete && currentPrice > sellStopPrice && currentPrice <(buyStopPrice) && priceRange > channelThreshold)
      {
       analysing = false;
       tradePrimed = false;
