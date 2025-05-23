@@ -383,13 +383,13 @@ priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
 tradeStarted = tradeEnabled;
 
 
-ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
-ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
-
-
-ObjectSetInteger(0, "setupBuyPrice", OBJPROP_COLOR, LineColorP2);
-ObjectSetInteger(0, "setupSellPrice", OBJPROP_COLOR, LineColorP);
-
+if (!priceDataSet){
+ObjectCreate(0,"buyPrice",OBJ_HLINE,0,0,buyPrice);
+ObjectCreate(0,"sellPrice",OBJ_HLINE,0,0,sellPrice);
+ObjectSetInteger(0, "buyPrice", OBJPROP_COLOR, LineColorP2);
+ObjectSetInteger(0, "sellPrice", OBJPROP_COLOR, LineColorP);
+priceDataSet = true;
+}
 
 
 
