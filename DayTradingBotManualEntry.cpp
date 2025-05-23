@@ -1,5 +1,5 @@
 // MetaT5Bot ////////////////////////////////////////////////////////////////////
-// IchimokuBitcoinMT5_Robot -  Luke Jeffers - 2023 - All rights reserved              //
+// IchimokuBitcoinMT5_Robot -  Luke Jeffers - 2023 - All rights reserved      //
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
@@ -70,11 +70,19 @@ bool pendingSellSet;
 double priceRange;
 double priceMovePercentage;
 int numSidesTested;
-double defaultLotSize;
+input double userBuyPrice;
+input double userSellPrice;
+input bool tradeEnabled = false;
+input double maxLoss = 380;
+//input bool tradeReversals = false;
+double reversalBuySL = 0;
+double reversalSellSL = 0;
+input double defaultLotSize = 0.01;
 double lotSize;
 double maxTrendingDuration;
 double tradingFrequency;
 double lotSizeHedging;
+
 
 double myTenkanSenValue;
 double myChikouValue;
@@ -120,7 +128,6 @@ double ma2;
 double maGradient;
 double maDist;
 double defaultMaxLoss;
-double maxLoss;
 double unrealisedProfit;
 double realisedProfit;
 bool seekingProfit;
@@ -139,17 +146,20 @@ double priceDeviation;
 bool priceDataSet;
 double oldOpenPrice;
 double maxDeviation;
-int candleAnalysisCount;
+double Multiplier;
 double setupBuyPrice;
 double setupSellPrice;
 double assetScaling;
+double buyStopPrice;
+double sellStopPrice;
+string currentSymbol;
+double maxAtr;
+double sl_b;
+double sl_s;
+int scaling;
 bool tradeComplete;
-input double userBuyPrice;
-input double userSellPrice;
-input double userLotSize;
-
-
-
+double capturedATRValue;
+static int ticketStack[];
 
 
 /*
@@ -245,33 +255,41 @@ int OnInit()
    consolidationLimit = 100;
    
    
-   mult = 1;
-   freqDelay = 2000;
+   mult = 3;
+   freqDelay = 99999999999999999999999999999999999;
    priceRange = 0.01;
    maxAllowedDist = 2;
-   posCount = 1;   
-   interest = 33;
-   defaultLotSize = userLotSize;
-   lotSize = defaultLotSize;
+   posCount = 1;
    defaultMaxLoss = 200;
-   maxLoss = defaultMaxLoss;
    defaultTrailingStop = 1;
    trailingStop = defaultTrailingStop;
-   buyPrice = 0;
+   buyPrice = 100000;
    sellPrice = 0;
    fibOffset = 0;
    maxDeviation = 500;
-   candleAnalysisCount = 100;
+   //candleAnalysisCount = 110;
    assetScaling = 4; // USD/JPY  Symbol/Asset 
+   maxAtr = 0;
+   tradeComplete = false;
    
-
-
+   
+   currentSymbol = Symbol();
+   
+   interest = 5;
+   lotSize = defaultLotSize;
+   scaling = 1;
+   Multiplier = 3;
+   
+   
+   
+   
+   
+   
 
 
    return(INIT_SUCCEEDED);
 
   }
-
 
 
 
@@ -281,17 +299,7 @@ int OnInit()
 void OnTick()
   {
   
-  ArraySetAsSeries(high, true);
-  ArraySetAsSeries(low, true);
   
-  CopyHigh(_Symbol,_Period,0,candleAnalysisCount,high);
-  CopyLow(_Symbol,_Period,0,candleAnalysisCount,low);
-  
-  highestCandle = ArrayMaximum(high,0,candleAnalysisCount);
-  lowestCandle = ArrayMinimum(low,0,candleAnalysisCount);
-  
-  MqlRates priceInformation[];
-  ArraySetAsSeries(priceInformation, true);
 
 
 
@@ -319,6 +327,12 @@ void OnTick()
    double Equity=AccountInfoDouble(ACCOUNT_EQUITY);
    double Balance=AccountInfoDouble(ACCOUNT_BALANCE);
    double PL = (Equity - Balance);
+   
+   
+   
+   
+   
+   
 
 
 // we calculate the ask price
@@ -330,49 +344,56 @@ void OnTick()
    
 
 
+// array for ATR price data
+double myAtrArray[];  
 
 // Sort it from current candle to oldest candle
 ArraySetAsSeries(PriceInfo, true);
 
+// Calculate ATR with a period of 14
+int myAtr = iATR(_Symbol, _Period, 14);
+
+// sort the price data from the current candle downwards
+ArraySetAsSeries(myAtrArray,true);
+
+// defined ea, from current candle, for 3 candles, save in array
+CopyBuffer(myAtr,0,0,3,myAtrArray);
+
+// calculate the current indicator values
+double myAtrValue=myAtrArray[0];
 
 
 
+// trade entry conditions #0000
 
+
+
+double n = 2;
+
+openPrice = iOpen(Symbol(), PERIOD_H1, 0);
 color LineColorP = clrMagenta;
 color LineColorP2 = clrAqua;
+color LineColorP3 = clrRed;
 
 
-if(!tradeStarted && !priceDataSet && awaitEntry < 1)
-{
-oldOpenPrice = openPrice;
-setupBuyPrice = userBuyPrice;
-setupSellPrice = userSellPrice;
-ObjectCreate(0,"buyPrice",OBJ_HLINE,0,0,setupBuyPrice);
-ObjectCreate(0,"sellPrice",OBJ_HLINE,0,0,setupSellPrice);
-ObjectSetInteger(0, "buyPrice", OBJPROP_COLOR, LineColorP);
-ObjectSetInteger(0, "sellPrice", OBJPROP_COLOR, LineColorP);
+buyPrice = userBuyPrice;
+sellPrice = userSellPrice;
+priceDeviation = MathAbs(currentPrice - ((buyPrice + sellPrice)/2));
+
+tradeStarted = tradeEnabled;
 
 
-priceDataSet=true;
-}
+ObjectCreate(0,"setupBuyPrice",OBJ_HLINE,0,0,setupBuyPrice);
+ObjectCreate(0,"setupSellPrice",OBJ_HLINE,0,0,setupSellPrice);
 
-if(!tradeStarted && awaitEntry < 1 && !tradeComplete)
-{
 
-if(currentPrice > setupBuyPrice)
-{
-   buyPrice = setupBuyPrice;
-   sellPrice = setupSellPrice; 
-   tradeStarted = true;
-}
-if(currentPrice < setupSellPrice && !tradeComplete)
-{
-   sellPrice = setupSellPrice;
-   buyPrice = setupBuyPrice;
-   tradeStarted = true;
-}
+ObjectSetInteger(0, "setupBuyPrice", OBJPROP_COLOR, LineColorP2);
+ObjectSetInteger(0, "setupSellPrice", OBJPROP_COLOR, LineColorP);
 
-}
+
+
+
+
 
 
 
@@ -381,21 +402,46 @@ if(currentPrice < setupSellPrice && !tradeComplete)
 //ObjectCreate(0,"buyPrice",OBJ_HLINE,0,0,buyPrice);
 //ObjectCreate(0,"sellPrice",OBJ_HLINE,0,0,sellPrice);
    
-    
+debt = MathAbs(lastPL);       
 ////////////////////////////////////
 // starting the trades
 // Selling
-   if(!hedgeSell && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
+   if(debt < maxLoss && !hedgeSell && !tradeComplete && currentPrice < (sellPrice - breakoutRange) && tradeStarted)
      {   
              
 
          numSidesTested++;
+         Print(Symbol()+ ": " + IntegerToString(numSidesTested));
+         //printf("numsidesTested: " + numSidesTested);
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
-         trade.PositionClose(Symbol());
+        
+         //trade.PositionClose(Symbol());
+         
+         
+         for (int i = 0; i < ArraySize(ticketStack); i++)
+         {
+         trade.PositionClose(ticketStack[i],-1);
+         }
+
          trade.Sell(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         lotSize*=mult;
+
+         ulong tradeTicket = trade.ResultOrder();
+         ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
+         ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         
+         lotSize *= 2;   
+         
+         
+         if(numSidesTested > 0 && numSidesTested % scaling == 0)
+         {
+         if(numSidesTested > 0 && numSidesTested % 2 == 0){
+         
+         }         
+         }
+         
+         
          
          
          
@@ -405,17 +451,41 @@ if(currentPrice < setupSellPrice && !tradeComplete)
              
      }
 // Buying
-   if(!hedgeBuy && currentPrice > (buyPrice + breakoutRange) && tradeStarted)
+   if(debt < maxLoss && !hedgeBuy && !tradeComplete && currentPrice > (buyPrice + breakoutRange) && tradeStarted && lotSize < 1)
      {
          
          
          numSidesTested++;
+         Print(Symbol()+ ": " + IntegerToString(numSidesTested));
+         //printf("numsidesTested: " + numSidesTested);
          rangeTestCount++;
          numIncreaseLots++;
          lastPL-=PL;
-         trade.PositionClose(Symbol());
-         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");
-         lotSize*=mult;
+         
+         //trade.PositionClose(Symbol());
+         
+         
+         for (int i = 0; i < ArraySize(ticketStack); i++)
+         {
+         trade.PositionClose(ticketStack[i],-1);
+         }
+         
+         trade.Buy(lotSize,NULL,Ask,(0),(0),"Bot executed trade");         
+         ulong tradeTicket = trade.ResultOrder();
+         ArrayResize(ticketStack, ArraySize(ticketStack) + 1);
+         ticketStack[ArraySize(ticketStack) - 1] = tradeTicket;
+         
+         lotSize *= 2;         
+         
+         
+         if(numSidesTested > 0 && numSidesTested % scaling == 0 && lotSize < 1)
+         {
+         if(numSidesTested > 0 && numSidesTested % 2 == 0){
+         
+         }
+         }
+         
+         
          
          
          hedgeSell = false;
@@ -429,12 +499,66 @@ if(currentPrice < setupSellPrice && !tradeComplete)
      
      
 //locking profit 
-debt = MathAbs(lastPL);     
-    
+  
+/*    
      
      // closing trades #3333
-     if(PL > (debt + interest))
+     if (PL > (debt + profitTarget))
      {
+      tradePrimed = false;
+      hedgeBuy = false;  
+      hedgeSell = false;
+      for (int i = 0; i < ArraySize(ticketStack); i++)
+      {
+      trade.PositionClose(ticketStack[i],-1);
+      }     
+      posCount = 1;
+      lastPL=0;
+      lotSize = defaultLotSize;
+      debt = 0;
+      numSidesTested = 0;
+      awaitEntry = freqDelay;
+      numIncreaseLots = 0;
+      rangeTestCount = 0;
+      primedPrice = 1;
+      maPrice = -1;
+      buyPriceSet = false;
+      sellPriceSet = false;
+      seekingProfit = false;
+      timeInTrade = 0;
+      trailingStop = defaultTrailingStop;
+      buyPrice = 100000;
+      sellPrice = 0;
+      tradeAction = "null";
+      tradeComplete = true;
+      priceDataSet = false;
+      tradeStarted = false;
+      }
+      */
+      
+      /*
+      // stop loss logic for reversals
+      if (reversalBuySL > 0 && reversalSellSL > 0)
+     {if (currentPrice > reversalBuySL || currentPrice < reversalSellSL){
+      for (int i = 0; i < ArraySize(ticketStack); i++)
+      {
+      trade.PositionClose(ticketStack[i],-1);
+      }
+      }
+      }
+      */
+      
+      
+      
+      
+      
+      
+      
+      /*
+      //cancelling trades
+      if(priceDataSet){
+      if(currentPrice > sl_b || currentPrice < sl_s){
+      
       tradePrimed = false;
       hedgeBuy = false;  
       hedgeSell = false;
@@ -461,12 +585,10 @@ debt = MathAbs(lastPL);
       sellPrice = 0;
       tradeAction = "null";
       priceDataSet = false;
-      tradeComplete = true;
       tradeStarted = false;
       }
- 
-
-    
+      }
+    */
     
 
 
@@ -544,13 +666,17 @@ debt = MathAbs(lastPL);
       "Wait  | "+DoubleToString(awaitEntry,Digits()+1) + "\n"+
       "Max chain  | "+DoubleToString(maxRangeTest,Digits()+1) + "\n"+
       "Max drawdown  | "+DoubleToString(maxDrawdown,Digits()+1) + "\n"+
+      "Min Lots  | "+DoubleToString(defaultLotSize,Digits()+1) + "\n"+
       "Consolidation limit  | "+DoubleToString(consolidationLimit,Digits()+1) + "\n"+
+      "ATR  | "+DoubleToString(myAtrValue,Digits()+1) + "\n"+
       "Buy price set | "+ myString + "\n"+
       "Sell price set | "+ myString2 + "\n"+
       "In trade | "+ myString3 + "\n"+
       "Price range  | "+DoubleToString(priceRange,Digits()+1) + "\n"+
       "Num sidesTested | "+IntegerToString(numSidesTested)+ "\n" +
       "price deviation | "+DoubleToString(priceDeviation);
+      
+      
       
       
 
@@ -560,4 +686,4 @@ debt = MathAbs(lastPL);
 
 }
   
-//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+MT5|Expert!40
